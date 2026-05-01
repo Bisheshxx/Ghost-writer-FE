@@ -3,14 +3,16 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import DetailsTabs from "@/shared/component/Tabs/DetailsTabs";
 
 export function ResizableComponent() {
   return (
     <ResizablePanelGroup orientation="horizontal" className="w-full h-full">
-      <ResizablePanel defaultSize="35%">
-        <div className="flex h-screen items-center justify-center p-6">
+      <ResizablePanel defaultSize="35%" minSize={400}>
+        {/* <div className="flex h-screen items-center justify-center p-6">
           <span className="font-semibold">Controls for the data</span>
-        </div>
+        </div> */}
+        <DetailsTabs />
       </ResizablePanel>
       <ResizableHandle withHandle />
       <ResizablePanel defaultSize="65%">

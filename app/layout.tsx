@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider, Show } from "@clerk/nextjs";
 import TanStackQueryProvider from "@/shared/providers/tan-stack-query.provider";
 import Navbar from "@/components/Navbar";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const robotoMono = Roboto_Mono({
+  variable: "--font-roboto-mono",
   subsets: ["latin"],
+  weight: ["100", "300", "400", "500", "700"],
 });
 
 export const metadata: Metadata = {
@@ -22,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} antialiased  `}>
+      <body className={`${robotoMono.variable} antialiased`}>
         <ClerkProvider>
           <Show when="signed-in">
             <Navbar />
