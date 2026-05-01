@@ -6,5 +6,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 Codebase rules:
 
-- Do's:
+##Do's:
+
+- use shadcn library for components if available so that you won't have to create ui from scratch
+- use zod for validation and react-hook-form for any type of form
+
 - <!-- END:nextjs-agent-rules -->
