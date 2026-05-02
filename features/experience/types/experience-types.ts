@@ -1,3 +1,6 @@
+import z from "zod";
+import { experienceSchema } from "../schema/experience.schema";
+
 export interface IExperience {
   _id: string;
   user: string;
@@ -12,3 +15,5 @@ export interface IExperience {
   createdAt: string;
   updatedAt: string;
 }
+
+export type ExperienceFormData = z.infer<typeof experienceSchema>;

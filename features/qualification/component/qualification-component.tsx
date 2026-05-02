@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { IExperience } from "../types/experience-types";
+import { IQualification } from "../types/qualification.d";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
@@ -10,66 +10,55 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { DialogFooter } from "@/components/ui/dialog";
 import { MoreVertical, Edit, Trash2 } from "lucide-react";
-import ExperienceForm from "../form/experience.form";
+import QualificationForm from "../form/qualification.form";
 import CustomDialog from "@/shared/component/dialog/CustomDialog";
 import { DIALOG_ENUMS } from "@/shared/constants";
 import useUiState from "@/store/useUIStore";
 
-export default function ExperienceComponent() {
-  const experience = [
+export default function QualificationComponent() {
+  const qualifications: IQualification[] = [
     {
-      _id: "69e1bff248d57ef84f7a3d3b",
+      _id: "69e1bff248d57ef84f7a3d3e",
       user: "69e18eeb510a6b300eebc06e",
-      companyName: "Acme Corp",
-      jobTitle: "Backend Engineer",
-      Descriptions:
-        "Built and maintained REST APIs with Node.js and MongoDB.\nImplemented scalable microservices architecture.\nManaged database optimization and query performance.",
-      startDate: "2023-01-15T00:00:00.000Z",
+      instituteName: "University of Technology",
+      descriptions:
+        "Bachelor of Science in Computer Science\nGPA: 3.8/4.0\nHonors: Cum Laude",
+      startDate: "2018-09-01T00:00:00.000Z",
+      isCurrent: false,
+      endDate: "2022-05-30T00:00:00.000Z",
+      relavantDetails:
+        "Relevant Coursework: Data Structures, Algorithms, Web Development, Database Management\nScholarship: Merit-based full tuition scholarship\nActivities: President of Computer Science Club, Hackathon Winner 2021",
+      __v: 0,
+      createdAt: "2026-04-17T05:06:58.752Z",
+      updatedAt: "2026-04-17T05:06:58.752Z",
+    },
+    {
+      _id: "69e1bff248d57ef84f7a3d3f",
+      user: "69e18eeb510a6b300eebc06e",
+      instituteName: "Advanced Technical Institute",
+      descriptions:
+        "Diploma in Full Stack Web Development\nSpecialization: JavaScript and Modern Frameworks",
+      startDate: "2022-07-15T00:00:00.000Z",
       isCurrent: true,
       endDate: null,
       relavantDetails:
-        "Worked on authentication, rate limiting, and Docker setup.\nLed team of 3 engineers on core backend features.\nReduced API response time by 40%.",
+        "Completed projects: E-commerce platform, Real-time Chat Application, Task Management System\nCertifications: AWS Solutions Architect Associate (In Progress)",
       __v: 0,
       createdAt: "2026-04-17T05:06:58.752Z",
       updatedAt: "2026-04-17T05:06:58.752Z",
     },
     {
-      _id: "69e1bff248d57ef84f7a3d3c",
+      _id: "69e1bff248d57ef84f7a3d40",
       user: "69e18eeb510a6b300eebc06e",
-      companyName: "Tech Innovations Ltd",
-      jobTitle: "Full Stack Developer",
-      Descriptions:
-        "Developed full-stack web applications using React and Node.js.\nDesigned and implemented responsive UI components.\nCollaborated with product team to deliver features on schedule.",
-      startDate: "2021-06-01T00:00:00.000Z",
+      instituteName: "Professional Development Center",
+      descriptions: "Google Cloud Professional Data Engineer Certification",
+      startDate: "2023-01-10T00:00:00.000Z",
       isCurrent: false,
-      endDate: "2022-12-31T00:00:00.000Z",
+      endDate: "2023-06-20T00:00:00.000Z",
       relavantDetails:
-        "Tech stack: React, TypeScript, Express, PostgreSQL.\nImplemented real-time notifications using WebSockets.\nMentored 2 junior developers.",
-      __v: 0,
-      createdAt: "2026-04-17T05:06:58.752Z",
-      updatedAt: "2026-04-17T05:06:58.752Z",
-    },
-    {
-      _id: "69e1bff248d57ef84f7a3d3d",
-      user: "69e18eeb510a6b300eebc06e",
-      companyName: "StartupXYZ",
-      jobTitle: "Junior Frontend Developer",
-      Descriptions:
-        "Built and maintained company website using Next.js.\nFixed bugs and improved performance across UI components.\nParticipated in daily standups and sprint planning.",
-      startDate: "2020-03-15T00:00:00.000Z",
-      isCurrent: false,
-      endDate: "2021-05-30T00:00:00.000Z",
-      relavantDetails:
-        "Tech stack: Next.js, Tailwind CSS, Zustand, Storybook.\nImplemented pixel-perfect designs from Figma.\nConducted accessibility audits and fixed WCAG violations.",
+        "Topics covered: BigQuery, Dataflow, Pub/Sub, Machine Learning\nPassed exam with 89% score",
       __v: 0,
       createdAt: "2026-04-17T05:06:58.752Z",
       updatedAt: "2026-04-17T05:06:58.752Z",
@@ -79,37 +68,40 @@ export default function ExperienceComponent() {
   const { setOpenDialogName } = useUiState();
 
   const handleAddClick = () => {
-    setOpenDialogName(DIALOG_ENUMS.CREATE_EXPERIENCE);
+    setOpenDialogName(DIALOG_ENUMS.CREATE_QUALIFICATION);
   };
 
   return (
     <>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Experience</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Qualification</h2>
         <Button onClick={handleAddClick} className="text-sm">
-          Add Experience
+          Add Qualification
         </Button>
       </div>
       <div className="overflow-auto flex flex-col gap-6">
-        {experience.map((exp) => (
-          <ExperienceCardComponent experience={exp} key={exp._id} />
+        {qualifications.map((qualification) => (
+          <QualificationCardComponent
+            qualification={qualification}
+            key={qualification._id}
+          />
         ))}
       </div>
 
-      <ExperienceAddDialog />
+      <QualificationAddDialog />
 
-      <ExperienceEditDialog />
+      <QualificationEditDialog />
 
-      <ExperienceDeleteDialog />
+      <QualificationDeleteDialog />
     </>
   );
 }
 
-function ExperienceAddDialog() {
+function QualificationAddDialog() {
   const { setOpenDialogName } = useUiState();
 
-  const handleSave = (data: Partial<IExperience>) => {
-    console.log("Creating new experience:", data);
+  const handleSave = (data: Partial<IQualification>) => {
+    console.log("Creating new qualification:", data);
     setOpenDialogName(null);
   };
 
@@ -120,21 +112,21 @@ function ExperienceAddDialog() {
   return (
     <CustomDialog
       width="md:max-w-5xl"
-      title={"Add Experience"}
-      description="Add a new experience to your profile"
-      dialogName={DIALOG_ENUMS.CREATE_EXPERIENCE}
+      title={"Add Qualification"}
+      description="Add a new qualification to your profile"
+      dialogName={DIALOG_ENUMS.CREATE_QUALIFICATION}
     >
-      <ExperienceForm onSave={handleSave} onCancel={handleCancel} />
+      <QualificationForm onSave={handleSave} onCancel={handleCancel} />
     </CustomDialog>
   );
 }
 
-function ExperienceEditDialog() {
-  const { selectedExperience, setOpenDialogName } = useUiState();
+function QualificationEditDialog() {
+  const { selectedQualification, setOpenDialogName } = useUiState();
 
-  if (!selectedExperience) return null;
+  if (!selectedQualification) return null;
 
-  const handleSave = (data: Partial<IExperience>) => {
+  const handleSave = (data: Partial<IQualification>) => {
     console.log("Saving:", data);
     setOpenDialogName(null);
   };
@@ -146,12 +138,12 @@ function ExperienceEditDialog() {
   return (
     <CustomDialog
       width="md:max-w-5xl"
-      title={"Edit Experience"}
-      description="Update your experience details below"
-      dialogName={DIALOG_ENUMS.EDIT_EXPERIENCE}
+      title={"Edit Qualification"}
+      description="Update your qualification details below"
+      dialogName={DIALOG_ENUMS.EDIT_QUALIFICATION}
     >
-      <ExperienceForm
-        experience={selectedExperience}
+      <QualificationForm
+        qualification={selectedQualification}
         onSave={handleSave}
         onCancel={handleCancel}
       />
@@ -159,10 +151,10 @@ function ExperienceEditDialog() {
   );
 }
 
-function ExperienceDeleteDialog() {
-  const { selectedExperience, setOpenDialogName } = useUiState();
+function QualificationDeleteDialog() {
+  const { selectedQualification, setOpenDialogName } = useUiState();
 
-  if (!selectedExperience) return null;
+  if (!selectedQualification) return null;
 
   const handleConfirm = () => {
     console.log("Deleted");
@@ -176,9 +168,9 @@ function ExperienceDeleteDialog() {
   return (
     <CustomDialog
       width="md:max-w-sm"
-      title={"Delete Experience?"}
-      description={`Are you sure you want to delete "${selectedExperience.jobTitle}" at "${selectedExperience.companyName}"? This action cannot be undone.`}
-      dialogName={DIALOG_ENUMS.DELETE_EXPERIENCE}
+      title={"Delete Qualification?"}
+      description={`Are you sure you want to delete "${selectedQualification.instituteName}"? This action cannot be undone.`}
+      dialogName={DIALOG_ENUMS.DELETE_QUALIFICATION}
     >
       <DialogFooter className="gap-2">
         <Button variant="outline" onClick={handleCancel} className="text-sm">
@@ -196,26 +188,28 @@ function ExperienceDeleteDialog() {
   );
 }
 
-const ExperienceCardComponent = ({
-  experience,
+const QualificationCardComponent = ({
+  qualification,
 }: {
-  experience: IExperience;
+  qualification: IQualification;
 }) => {
-  const { setOpenDialogName, setSelectedExperience } = useUiState();
+  const { setOpenDialogName, setSelectedQualification } = useUiState();
+
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
     });
   };
+
   const handleEditClick = () => {
-    setSelectedExperience(experience);
-    setOpenDialogName(DIALOG_ENUMS.EDIT_EXPERIENCE);
+    setSelectedQualification(qualification);
+    setOpenDialogName(DIALOG_ENUMS.EDIT_QUALIFICATION);
   };
 
   const handleDeleteClick = () => {
-    setSelectedExperience(experience);
-    setOpenDialogName(DIALOG_ENUMS.DELETE_EXPERIENCE);
+    setSelectedQualification(qualification);
+    setOpenDialogName(DIALOG_ENUMS.DELETE_QUALIFICATION);
   };
 
   return (
@@ -227,15 +221,12 @@ const ExperienceCardComponent = ({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                   <CardTitle className="text-xs sm:text-sm md:text-lg lg:text-2xl font-semibold text-gray-900 break-words">
-                    {experience.jobTitle}
+                    {qualification.instituteName}
                   </CardTitle>
-                  {experience.isCurrent && (
+                  {qualification.isCurrent && (
                     <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-500 flex-shrink-0 mt-0.5"></div>
                   )}
                 </div>
-                <p className="text-gray-600 text-xs md:text-sm font-medium mt-0.5 sm:mt-1 truncate">
-                  {experience.companyName}
-                </p>
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -265,9 +256,9 @@ const ExperienceCardComponent = ({
             <div className="text-left text-xs sm:text-sm">
               <p className="text-gray-500 font-medium text-xs">Duration</p>
               <p className="font-semibold text-gray-900 text-xs sm:text-sm">
-                {formatDate(experience.startDate)} -{" "}
-                {experience.endDate
-                  ? formatDate(experience.endDate)
+                {formatDate(qualification.startDate)} -{" "}
+                {qualification.endDate
+                  ? formatDate(qualification.endDate)
                   : "Present"}
               </p>
             </div>
@@ -279,17 +270,17 @@ const ExperienceCardComponent = ({
               Description
             </p>
             <p className="text-gray-700 text-xs md:text-sm leading-relaxed whitespace-pre-line line-clamp-4 sm:line-clamp-none">
-              {experience.Descriptions}
+              {qualification.descriptions}
             </p>
           </div>
 
-          {experience.relavantDetails && (
+          {qualification.relavantDetails && (
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-tight sm:tracking-wide mb-1.5 sm:mb-2">
                 Relevant Details
               </p>
               <p className="text-gray-700 text-xs md:text-sm leading-relaxed whitespace-pre-line line-clamp-3 sm:line-clamp-none">
-                {experience.relavantDetails}
+                {qualification.relavantDetails}
               </p>
             </div>
           )}

@@ -1,6 +1,7 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ExperienceComponent from "@/features/experience/component/experience-component";
+import QualificationComponent from "@/features/qualification/component/qualification-component";
 
 export default function DetailsTabs() {
   return (
@@ -16,7 +17,9 @@ export default function DetailsTabs() {
       <TabsContent value="exp" className="h-full p-4">
         <ExperienceComponent />
       </TabsContent>
-      <TabsContent value="qual">2</TabsContent>
+      <TabsContent value="qual" className="h-full p-4">
+        <QualificationComponent />
+      </TabsContent>
       <TabsContent value="proj">3</TabsContent>
       <TabsContent value="skill">4</TabsContent>
     </Tabs>

@@ -3,53 +3,16 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { IExperience } from "../types/experience-types";
+import { ExperienceFormData, IExperience } from "../types/experience-types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DialogFooter } from "@/components/ui/dialog";
-
-const experienceSchema = z.object({
-  jobTitle: z.string().min(1, "Job title is required"),
-  companyName: z.string().min(1, "Company name is required"),
-  startDate: z
-    .string()
-    .min(1, "Start date is required")
-    .refine(
-      (val) => {
-        if (!val) return false;
-        const today = new Date();
-        const cur = `${today.getFullYear()}-${String(
-          today.getMonth() + 1,
-        ).padStart(2, "0")}`;
-        return val <= cur;
-      },
-      { message: "Start date cannot be in the future" },
-    ),
-  endDate: z
-    .string()
-    .optional()
-    .refine(
-      (val) => {
-        if (!val) return true;
-        const today = new Date();
-        const cur = `${today.getFullYear()}-${String(
-          today.getMonth() + 1,
-        ).padStart(2, "0")}`;
-        return val <= cur;
-      },
-      { message: "End date cannot be in the future" },
-    ),
-  Descriptions: z.string().min(1, "Description is required"),
-  relavantDetails: z.string().optional(),
-  isCurrent: z.boolean(),
-});
-
-type ExperienceFormData = z.infer<typeof experienceSchema>;
+import { experienceSchema } from "../schema/experience.schema";
 
 interface ExperienceFormProps {
-  experience: IExperience;
+  experience?: IExperience;
   onSave: (data: Partial<IExperience>) => void;
   onCancel: () => void;
 }
@@ -67,13 +30,13 @@ export default function ExperienceForm({
   } = useForm<ExperienceFormData>({
     resolver: zodResolver(experienceSchema),
     defaultValues: {
-      jobTitle: experience.jobTitle,
-      companyName: experience.companyName,
-      startDate: experience.startDate.slice(0, 7),
-      endDate: experience.endDate ? experience.endDate.slice(0, 7) : "",
-      Descriptions: experience.Descriptions,
-      relavantDetails: experience.relavantDetails || "",
-      isCurrent: experience.isCurrent ?? false,
+      jobTitle: experience?.jobTitle || "",
+      companyName: experience?.companyName || "",
+      startDate: experience?.startDate.slice(0, 7) || "",
+      endDate: experience?.endDate ? experience?.endDate.slice(0, 7) : "",
+      Descriptions: experience?.Descriptions || "",
+      relavantDetails: experience?.relavantDetails || "",
+      isCurrent: experience?.isCurrent ?? false,
     },
   });
 
