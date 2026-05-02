@@ -5,13 +5,13 @@ import { ExperienceFormData, IExperience } from "../types/experience-types";
 
 export const ExperienceService = {
   getExperience: async () =>
-    request<ApiResponse<IExperience[]>>({
+    request<IExperience[]>({
       method: "GET",
       url: "v1/experience",
     }),
 
   createExperience: async (experience: ExperienceFormData) =>
-    request<ApiResponse<Partial<IExperience>>>({
+    request<Partial<IExperience>>({
       method: "POST",
       url: "v1/experience",
       data: {
@@ -19,12 +19,12 @@ export const ExperienceService = {
       },
     }),
   deleteExperience: async (id: string) =>
-    request<ApiResponse<null>>({
+    request<null>({
       method: "DELETE",
       url: `v1/experience/${id}`,
     }),
   editExperience: async (id: string, data: ExperienceFormData) =>
-    request<ApiResponse<IExperience>>({
+    request<IExperience>({
       method: "PATCH",
       url: `v1/experience/${id}`,
       data,

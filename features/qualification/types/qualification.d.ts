@@ -1,6 +1,7 @@
 export interface IQualification {
   _id: string;
   user: string;
+  qualification: string;
   instituteName: string;
   descriptions: string;
   startDate: string;

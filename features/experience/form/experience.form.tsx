@@ -13,7 +13,7 @@ import { useEffect } from "react";
 
 interface ExperienceFormProps {
   experience?: IExperience;
-  onSave: (data: ExperienceFormData) => void;
+  onSave: (data: ExperienceFormData) => void | Promise<void>;
   onCancel: () => void;
   serverError?: any;
 }

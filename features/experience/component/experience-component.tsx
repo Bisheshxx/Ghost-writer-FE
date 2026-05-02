@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DialogFooter } from "@/components/ui/dialog";
-import { MoreVertical, Edit, Trash2, SquareDashedText } from "lucide-react";
+import { MoreVertical, Edit, Trash2 } from "lucide-react";
 import ExperienceForm from "../form/experience.form";
 import CustomDialog from "@/shared/component/dialog/CustomDialog";
 import { DIALOG_ENUMS } from "@/shared/constants";
@@ -22,6 +22,7 @@ import Loading from "@/app/loading";
 import { useApiMutation } from "@/shared/hooks/useApiMutation";
 
 import { showSuccess } from "@/lib/toast/toast.lib";
+import NothingToDisplay from "@/shared/component/NothingToDisplay";
 
 export default function ExperienceComponent() {
   const { setOpenDialogName } = useUiState();
@@ -64,10 +65,7 @@ function ExperiencesCards() {
             <ExperienceCardComponent experience={exp} key={exp._id} />
           ))
         ) : (
-          <div className="flex flex-col flex-1 justify-center items-center">
-            <SquareDashedText size={100} />
-            <span className="font-bold mt-2">Nothing to display</span>
-          </div>
+          <NothingToDisplay />
         )}
       </div>
     );

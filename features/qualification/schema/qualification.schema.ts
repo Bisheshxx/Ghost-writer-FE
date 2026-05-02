@@ -1,6 +1,10 @@
 import { z } from "zod";
 
 export const qualificationSchema = z.object({
+  qualification: z
+    .string()
+    .min(1, "Qualification is required")
+    .min(2, "Qualification must be at least 2 characters"),
   instituteName: z
     .string()
     .min(1, "Institute name is required")
@@ -25,7 +29,7 @@ export const qualificationSchema = z.object({
     ),
   endDate: z
     .string()
-    .optional()
+    .nullable()
     .refine(
       (val) => {
         if (!val) return true;
@@ -40,5 +44,15 @@ export const qualificationSchema = z.object({
   isCurrent: z.boolean(),
   relavantDetails: z.string(),
 });
+
+// const QualificationSchema = z.object({
+//   qualification: requiredString("Qualification"),
+//   descriptions: requiredString("Descriptions"),
+//   instituteName: requiredString("Institute name"),
+//   relavantDetails: requiredString("Relavant details"),
+//   startDate: monthYearSchema,
+//   endDate: monthYearSchema.nullable().optional(),
+//   isCurrent: z.boolean(),
+// });
 
 export type QualificationFormData = z.infer<typeof qualificationSchema>;
