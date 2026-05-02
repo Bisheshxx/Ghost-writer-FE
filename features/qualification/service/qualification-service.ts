@@ -6,12 +6,12 @@ import { IExperience } from "@/features/experience/types/experience-types";
 
 export const QualificationServce = {
   getQualification: async () =>
-    request<ApiResponse<IQualification[]>>({
+    request<IQualification[]>({
       method: "GET",
       url: `v1/qualification`,
     }),
   createQualification: async (qualification: QualificationFormData) =>
-    request<ApiResponse<IExperience>>({
+    request<IExperience>({
       method: "POST",
       url: `v1/qualification`,
       data: {
@@ -19,12 +19,12 @@ export const QualificationServce = {
       },
     }),
   deleteQualification: async (id: string) =>
-    request<ApiResponse<null>>({
+    request<null>({
       method: "DELETE",
       url: `v1/qualification/${id}`,
     }),
   editQualification: async (id: string, qualification: QualificationFormData) =>
-    request<ApiResponse<IQualification>>({
+    request<IQualification>({
       method: "PATCH",
       url: `v1/qualification/${id}`,
       data: {

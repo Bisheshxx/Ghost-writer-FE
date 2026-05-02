@@ -15,44 +15,16 @@ import useUiState from "@/store/useUIStore";
 import { Edit, MoreVertical, Trash2 } from "lucide-react";
 import ProjectForm from "../form/project.form";
 import { IProject } from "../types/project.d";
+import { Suspense, useState } from "react";
+import Loading from "@/app/loading";
+import { useApiQuery } from "@/shared/hooks/useApiQuery";
+import { ProjectService } from "../service/project-service";
+import NothingToDisplay from "@/shared/component/NothingToDisplay";
+import { useApiMutation } from "@/shared/hooks/useApiMutation";
+import { showSuccess } from "@/lib/toast/toast.lib";
+import { ProjectFormData } from "../schema/project.schema";
 
 export default function ProjectComponent() {
-  const projects: IProject[] = [
-    {
-      _id: "69e1bff248d57ef84f7a3d41",
-      user: "69e18eeb510a6b300eebc06e",
-      projectTitle: "Ghost Admin Dashboard",
-      details:
-        "Built a responsive internal dashboard for managing user content, analytics, and moderation workflows. Included reusable tables, filters, and toast-driven feedback states.",
-      stack: ["Next.js", "TypeScript", "Tailwind CSS", "TanStack Query"],
-      __v: 0,
-      createdAt: "2026-04-17T05:06:58.752Z",
-      updatedAt: "2026-04-17T05:06:58.752Z",
-    },
-    {
-      _id: "69e1bff248d57ef84f7a3d42",
-      user: "69e18eeb510a6b300eebc06e",
-      projectTitle: "Portfolio CMS",
-      details:
-        "Created a content management interface for updating personal portfolio sections without editing code directly. Focused on form validation, dialog flows, and clean editing patterns.",
-      stack: ["React", "Zustand", "React Hook Form", "Zod"],
-      __v: 0,
-      createdAt: "2026-04-17T05:06:58.752Z",
-      updatedAt: "2026-04-17T05:06:58.752Z",
-    },
-    {
-      _id: "69e1bff248d57ef84f7a3d43",
-      user: "69e18eeb510a6b300eebc06e",
-      projectTitle: "Realtime Collaboration Tool",
-      details:
-        "Designed a lightweight collaboration app with shared task boards, live updates, and role-aware actions. Optimized for fast navigation and simple project tracking.",
-      stack: ["Node.js", "WebSockets", "PostgreSQL", "Docker"],
-      __v: 0,
-      createdAt: "2026-04-17T05:06:58.752Z",
-      updatedAt: "2026-04-17T05:06:58.752Z",
-    },
-  ];
-
   const { setOpenDialogName } = useUiState();
 
   const handleAddClick = () => {
@@ -60,37 +32,69 @@ export default function ProjectComponent() {
   };
 
   return (
-    <>
-      <div className="flex justify-between items-center mb-6">
+    <div className="h-full min-h-0 flex flex-col">
+      <div className="flex justify-between items-center mb-6 shrink-0">
         <h2 className="text-2xl font-bold text-gray-900">Projects</h2>
         <Button onClick={handleAddClick} className="text-sm">
           Add Project
         </Button>
       </div>
-      <div className="overflow-auto flex flex-col gap-6">
-        {projects.map((project) => (
-          <ProjectCardComponent project={project} key={project._id} />
-        ))}
-      </div>
+      <Suspense fallback={<Loading />}>
+        <ProjectCards />
+      </Suspense>
 
       <ProjectAddDialog />
 
       <ProjectEditDialog />
 
       <ProjectDeleteDialog />
-    </>
+    </div>
   );
+}
+
+function ProjectCards() {
+  const { data: projects, isSuccess } = useApiQuery({
+    queryFn: () => ProjectService.getProject(),
+    queryKey: ["project"],
+  });
+
+  if (isSuccess)
+    return (
+      <div className="flex-1 min-h-0 overflow-y-auto pr-2 flex flex-col mb-6">
+        {projects && Array.isArray(projects) && projects.length > 0 ? (
+          projects.map((project) => (
+            <ProjectCardComponent project={project} key={project._id} />
+          ))
+        ) : (
+          <NothingToDisplay />
+        )}
+      </div>
+    );
 }
 
 function ProjectAddDialog() {
   const { setOpenDialogName } = useUiState();
+  const [serverError, setServerError] = useState<any>(null);
 
-  const handleSave = (data: Partial<IProject>) => {
-    console.log("Creating new project:", data);
-    setOpenDialogName(null);
+  const createProject = useApiMutation(ProjectService.createProject, {
+    onSuccess: () => {
+      showSuccess("Project added successfully!");
+      setOpenDialogName(null);
+      setServerError(null);
+    },
+    onError: (error) => {
+      setServerError(error);
+    },
+    invalidateQueries: ["project"],
+  });
+
+  const handleSave = async (data: ProjectFormData) => {
+    setServerError(null);
+    await createProject.mutateAsync(data);
   };
 
   const handleCancel = () => {
+    setServerError(null);
     setOpenDialogName(null);
   };
 
@@ -101,22 +105,47 @@ function ProjectAddDialog() {
       description="Add a new project to your profile"
       dialogName={DIALOG_ENUMS.CREATE_PROJECT}
     >
-      <ProjectForm onSave={handleSave} onCancel={handleCancel} />
+      <ProjectForm
+        onSave={handleSave}
+        onCancel={handleCancel}
+        serverError={serverError}
+      />
     </CustomDialog>
   );
 }
 
 function ProjectEditDialog() {
   const { selectedProject, setOpenDialogName } = useUiState();
+  const [serverError, setServerError] = useState<any>(null);
+
+  const editProject = useApiMutation(
+    ({ id, data }: { id: string; data: ProjectFormData }) =>
+      ProjectService.editProject(id, data),
+    {
+      onSuccess: () => {
+        showSuccess("Project updated successfully!");
+        setOpenDialogName(null);
+        setServerError(null);
+      },
+      onError: (error) => {
+        setServerError(error);
+      },
+      invalidateQueries: ["project"],
+    },
+  );
 
   if (!selectedProject) return null;
 
-  const handleSave = (data: Partial<IProject>) => {
-    console.log("Saving:", data);
-    setOpenDialogName(null);
+  const handleSave = async (data: ProjectFormData) => {
+    setServerError(null);
+    await editProject.mutateAsync({
+      id: selectedProject._id,
+      data,
+    });
   };
 
   const handleCancel = () => {
+    setServerError(null);
     setOpenDialogName(null);
   };
 
@@ -131,19 +160,33 @@ function ProjectEditDialog() {
         project={selectedProject}
         onSave={handleSave}
         onCancel={handleCancel}
+        serverError={serverError}
       />
     </CustomDialog>
   );
 }
 
 function ProjectDeleteDialog() {
-  const { selectedProject, setOpenDialogName } = useUiState();
+  const { selectedProject, setSelectedProject, setOpenDialogName } =
+    useUiState();
+
+  const DeleteProject = useApiMutation(ProjectService.deleteProject, {
+    onSuccess: () => {
+      showSuccess("Successfully deleted project!");
+      setSelectedProject(null);
+    },
+    invalidateQueries: ["project"],
+  });
 
   if (!selectedProject) return null;
 
-  const handleConfirm = () => {
-    console.log("Deleted");
-    setOpenDialogName(null);
+  const handleConfirm = async () => {
+    try {
+      await DeleteProject.mutateAsync(selectedProject._id);
+      setOpenDialogName(null);
+    } catch {
+      // Error handling is managed by mutation hook
+    }
   };
 
   const handleCancel = () => {
@@ -187,7 +230,7 @@ const ProjectCardComponent = ({ project }: { project: IProject }) => {
   };
 
   return (
-    <Card className="w-full shadow-sm border border-gray-200 bg-white hover:shadow-md transition-shadow">
+    <Card className="w-full shrink-0 shadow-sm border border-gray-200 bg-white hover:shadow-md transition-shadow mb-6">
       <CardHeader className="pb-2 md:pb-4 px-2.5 sm:px-4 md:px-6">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
@@ -226,7 +269,7 @@ const ProjectCardComponent = ({ project }: { project: IProject }) => {
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-tight sm:tracking-wide mb-1.5 sm:mb-2">
             Details
           </p>
-          <p className="text-gray-700 text-xs md:text-sm leading-relaxed whitespace-pre-line line-clamp-4 sm:line-clamp-none">
+          <p className="text-gray-700 text-xs md:text-sm leading-relaxed whitespace-pre-line">
             {project.details}
           </p>
         </div>

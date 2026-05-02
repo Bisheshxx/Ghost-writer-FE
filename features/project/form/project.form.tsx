@@ -1,33 +1,30 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DialogFooter } from "@/components/ui/dialog";
 import { IProject } from "../types/project.d";
 import { projectSchema, ProjectFormData } from "../schema/project.schema";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 
 interface ProjectFormProps {
   project?: IProject;
-  onSave: (data: Partial<IProject>) => void;
+  onSave: (data: ProjectFormData) => void | Promise<void>;
   onCancel: () => void;
+  serverError?: any;
 }
 
 export default function ProjectForm({
   project,
   onSave,
   onCancel,
+  serverError,
 }: ProjectFormProps) {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm<ProjectFormData>({
+  const { control, handleSubmit, setError } = useForm<ProjectFormData>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
       projectTitle: project?.projectTitle || "",
@@ -37,85 +34,89 @@ export default function ProjectForm({
   });
 
   useEffect(() => {
-    reset({
-      projectTitle: project?.projectTitle || "",
-      details: project?.details || "",
-      stack: project?.stack?.join(", ") || "",
-    });
-  }, [project, reset]);
+    if (
+      serverError?.validationErrors &&
+      serverError.validationErrors.length > 0
+    ) {
+      serverError.validationErrors.forEach((err: any) => {
+        setError(err.field.name as keyof ProjectFormData, {
+          message: err.message,
+        });
+      });
+    }
+  }, [serverError, setError]);
 
   const onSubmit = (data: ProjectFormData) => {
-    onSave({
-      projectTitle: data.projectTitle,
-      details: data.details,
-      stack: data.stack
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean),
-    });
+    onSave(data);
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <Label htmlFor="projectTitle" className="text-xs sm:text-sm">
-          Project Title *
-        </Label>
-        <Input
-          id="projectTitle"
-          placeholder="e.g., Ghost Dashboard"
-          {...register("projectTitle")}
-          className="text-xs sm:text-sm mt-1"
-        />
-        {errors.projectTitle && (
-          <p className="text-red-500 text-xs mt-1">
-            {errors.projectTitle.message}
-          </p>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <Controller
+        control={control}
+        name="projectTitle"
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid || undefined}>
+            <FieldLabel htmlFor="projectTitle">Project Title *</FieldLabel>
+            <Input
+              {...field}
+              id="projectTitle"
+              placeholder="e.g. Ghost Dashboard"
+              aria-invalid={fieldState.invalid || undefined}
+              className="text-sm"
+            />
+            <FieldError errors={[fieldState.error]} />
+          </Field>
         )}
-      </div>
+      />
 
-      <div>
-        <Label htmlFor="details" className="text-xs sm:text-sm">
-          Details *
-        </Label>
-        <Textarea
-          id="details"
-          placeholder="Describe the project, goals, and what you built"
-          rows={5}
-          {...register("details")}
-          className="text-xs sm:text-sm mt-1"
-        />
-        {errors.details && (
-          <p className="text-red-500 text-xs mt-1">{errors.details.message}</p>
+      <Controller
+        control={control}
+        name="details"
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid || undefined}>
+            <FieldLabel htmlFor="details">Details *</FieldLabel>
+            <Textarea
+              {...field}
+              id="details"
+              placeholder="Describe the project, goals, and what you built"
+              aria-invalid={fieldState.invalid || undefined}
+              className="text-sm min-h-24 resize-none"
+            />
+            <FieldError errors={[fieldState.error]} />
+          </Field>
         )}
-      </div>
+      />
 
-      <div>
-        <Label htmlFor="stack" className="text-xs sm:text-sm">
-          Stack *
-        </Label>
-        <Input
-          id="stack"
-          placeholder="e.g., Next.js, TypeScript, Tailwind CSS"
-          {...register("stack")}
-          className="text-xs sm:text-sm mt-1"
-        />
-        {errors.stack && (
-          <p className="text-red-500 text-xs mt-1">{errors.stack.message}</p>
+      <Controller
+        control={control}
+        name="stack"
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid || undefined}>
+            <FieldLabel htmlFor="stack">Stack *</FieldLabel>
+            <Input
+              {...field}
+              id="stack"
+              placeholder="e.g. Next.js, TypeScript, Tailwind CSS"
+              aria-invalid={fieldState.invalid || undefined}
+              className="text-sm"
+            />
+            <FieldError errors={[fieldState.error]} />
+          </Field>
         )}
-      </div>
+      />
 
       <DialogFooter className="gap-2">
         <Button
           type="button"
           variant="outline"
           onClick={onCancel}
-          className="text-xs sm:text-sm"
+          className="text-sm"
         >
           Cancel
         </Button>
-        <Button type="submit" className="text-xs sm:text-sm">
-          {project ? "Update" : "Create"}
+        <Button type="submit" className="text-sm">
+          Save Changes
         </Button>
       </DialogFooter>
     </form>
