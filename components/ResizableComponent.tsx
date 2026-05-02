@@ -8,10 +8,11 @@ import DetailsTabs from "@/shared/component/Tabs/DetailsTabs";
 export function ResizableComponent() {
   return (
     <ResizablePanelGroup orientation="horizontal" className="w-full h-full">
-      <ResizablePanel defaultSize="35%" minSize={400}>
-        {/* <div className="flex h-screen items-center justify-center p-6">
-          <span className="font-semibold">Controls for the data</span>
-        </div> */}
+      <ResizablePanel
+        style={{ overflow: "clip" }}
+        defaultSize="35%"
+        minSize={400}
+      >
         <DetailsTabs />
       </ResizablePanel>
       <ResizableHandle withHandle />

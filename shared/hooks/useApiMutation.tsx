@@ -16,7 +16,6 @@ type MutationOptions<TData, TVariables> = Omit<
 
 type IOptions<T, F> = {
   invalidateQueries?: string[];
-  showToast?: boolean;
 } & MutationOptions<T, F>;
 
 export const useApiMutation = <TData, TVariables>(
@@ -29,25 +28,15 @@ export const useApiMutation = <TData, TVariables>(
     onSuccess: userOnSuccess,
     ...restOptions
   } = options || {};
-  const showToast = options?.showToast ?? true;
 
   return useMutation<ApiResponse<TData>, ApiErrorHandler, TVariables>({
     mutationFn,
     onError: (error, variables, onMutateResult, context) => {
-      if (showToast) {
-        toast.error(error?.response?.message || "Something went wrong", {
-          description:
-            error?.response?.message ||
-            "Please try again or try refreshing the page",
-        });
-      }
-
       if (typeof userOnError === "function") {
         userOnError(error, variables, onMutateResult, context);
       }
     },
     onSuccess: (data, variables, onMutateResult, context) => {
-      toast.success(data.message);
       if (options?.invalidateQueries) {
         options.invalidateQueries.forEach((key) =>
           queryClient.invalidateQueries({ queryKey: [key] }),

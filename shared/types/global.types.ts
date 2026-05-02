@@ -1,8 +1,9 @@
-export interface ApiResponse<T> {
-  data: T | undefined;
+export interface ApiResponse<T = any> {
+  data?: T;
   success: boolean;
   message?: string;
-  error?: IError[];
+  error?: IError;
+  timestamp?: string;
 }
 
 export interface IError {
@@ -11,9 +12,9 @@ export interface IError {
   validationErrors?: IValidationError[];
 }
 
-interface IValidationError {
+export interface IValidationError {
   field: {
-    index: number | null;
+    index?: number | null;
     name: string;
   };
   message: string;

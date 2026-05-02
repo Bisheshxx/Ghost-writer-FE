@@ -19,7 +19,7 @@ export const experienceSchema = z.object({
     ),
   endDate: z
     .string()
-    .optional()
+    .nullable()
     .refine(
       (val) => {
         if (!val) return true;
@@ -35,3 +35,16 @@ export const experienceSchema = z.object({
   relavantDetails: z.string().optional(),
   isCurrent: z.boolean(),
 });
+// .refine(
+//   (data) => {
+//     // If endDate is provided, it must be >= startDate
+//     if (data.endDate && data.startDate) {
+//       return data.endDate >= data.startDate;
+//     }
+//     return true;
+//   },
+//   {
+//     message: "End date cannot be earlier than start date",
+//     path: ["endDate"],
+//   },
+// );

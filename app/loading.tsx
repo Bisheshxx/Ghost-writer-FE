@@ -1,0 +1,10 @@
+"use client";
+import { Loader2 } from "lucide-react";
+
+export default function loading() {
+  return (
+    <div className="flex-1 flex justify-center items-center">
+      <Loader2 className="animate-spin" />
+    </div>
+  );
+}

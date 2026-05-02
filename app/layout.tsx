@@ -4,6 +4,7 @@ import "./globals.css";
 import { ClerkProvider, Show } from "@clerk/nextjs";
 import TanStackQueryProvider from "@/shared/providers/tan-stack-query.provider";
 import Navbar from "@/components/Navbar";
+import { Toaster } from "sonner";
 
 const robotoMono = Roboto_Mono({
   variable: "--font-roboto-mono",
@@ -34,6 +35,7 @@ export default function RootLayout({
             </main>
           </TanStackQueryProvider>
         </ClerkProvider>
+        <Toaster position="bottom-right" />
       </body>
     </html>
   );

@@ -1,39 +1,75 @@
-import { ApiResponse, IError } from "../../shared/types/global.types";
+import {
+  ApiResponse,
+  IError,
+  IValidationError,
+} from "../../shared/types/global.types";
 
+/**
+ * API Error Handler for mapping server errors to client-side exceptions
+ * Handles both general errors and field-level validation errors
+ */
 export class ApiErrorHandler extends Error {
-  response: ApiResponse<null>;
+  public response: ApiResponse<null>;
+  public error?: IError;
+  public validationErrors?: IValidationError[];
 
-  constructor(response: {
-    data: undefined;
-    success: boolean;
-    message: string;
-    error?: IError[];
-  }) {
-    let errorMessage = response.message;
-    if (
-      response.error &&
-      Array.isArray(response.error) &&
-      response.error.length > 0
-    ) {
-      // Combine all error messages
-      errorMessage = response.error.map((e) => e.message).join("; ");
-      // Collect all validation errors
-      const allValidationErrors = response.error.flatMap(
-        (e) => e.validationErrors || [],
-      );
-      if (allValidationErrors.length > 0) {
-        const validationMsgs = allValidationErrors
-          .map(
-            (v) =>
-              `${v.field.name}${v.field.index !== null ? `[${v.field.index}]` : ""}: ${v.message}`,
-          )
-          .join("; ");
-        errorMessage += ` | Validation: ${validationMsgs}`;
-      }
+  constructor(response: ApiResponse<null>) {
+    let errorMessage = response.message || "An error occurred";
+
+    // Handle the error object
+    if (response.error) {
+      errorMessage = response.error.message;
     }
 
     super(errorMessage);
     this.name = "ApiError";
     this.response = response;
+
+    // Set error and validation errors after super()
+    if (response.error) {
+      this.error = response.error;
+      if (
+        response.error.validationErrors &&
+        response.error.validationErrors.length > 0
+      ) {
+        this.validationErrors = response.error.validationErrors;
+      }
+    }
+    this.name = "ApiError";
+    this.response = response;
+  }
+
+  /**
+   * Get validation errors grouped by field name for form error mapping
+   * Useful for react-hook-form setError() calls
+   *
+   * @example
+   * const errorsByField = error.getValidationErrorsByField();
+   * // { endDate: ["End date cannot be earlier than start date"] }
+   * errorsByField['endDate'].forEach(msg => {
+   *   setError('endDate', { message: msg });
+   * });
+   */
+  public getValidationErrorsByField(): Record<string, string[]> {
+    const errorsByField: Record<string, string[]> = {};
+
+    if (this.validationErrors) {
+      this.validationErrors.forEach((validationError) => {
+        const fieldName = validationError.field.name;
+        if (!errorsByField[fieldName]) {
+          errorsByField[fieldName] = [];
+        }
+        errorsByField[fieldName].push(validationError.message);
+      });
+    }
+
+    return errorsByField;
+  }
+
+  /**
+   * Get all validation errors as a flat array
+   */
+  public getAllValidationErrors(): IValidationError[] {
+    return this.validationErrors || [];
   }
 }

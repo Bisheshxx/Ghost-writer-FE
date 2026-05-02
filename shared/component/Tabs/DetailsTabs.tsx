@@ -7,7 +7,7 @@ import SkillsComponent from "@/features/skills/component/skills-component";
 
 export default function DetailsTabs() {
   return (
-    <Tabs defaultValue="exp" className="w-full">
+    <Tabs defaultValue="exp" className="w-full h-full">
       <div className="w-full flex justify-center items-center">
         <TabsList className="">
           <TabsTrigger value="exp">Experience</TabsTrigger>

@@ -3,7 +3,7 @@ import { AxiosRequestConfig } from "axios";
 import { ApiErrorHandler } from "./Api-Error-Handler";
 import { api } from "./api";
 
-type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
+type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
 
 interface RequestOptions<TRequest = Record<string, unknown>> {
   method: HttpMethod;
@@ -35,14 +35,9 @@ export async function request<
     });
 
     const apiResponse = response?.data as ApiResponse<TResponse> | undefined;
-    const isSuccess = apiResponse?.success ?? apiResponse?.success;
-    if (isSuccess === false) {
-      throw new ApiErrorHandler({
-        success: false,
-        data: undefined,
-        message: apiResponse?.message || "An unexpected error occurred",
-        error: apiResponse?.error ? apiResponse?.error : undefined,
-      });
+    const isSuccess = apiResponse?.success ?? true;
+    if (!isSuccess && apiResponse) {
+      throw new ApiErrorHandler(apiResponse as ApiResponse<null>);
     }
 
     return response.data;
@@ -50,18 +45,17 @@ export async function request<
     if (error instanceof ApiErrorHandler) {
       throw error;
     }
-    const apiResponse = error?.data;
+    const apiResponse = error?.response?.data as ApiResponse<null> | undefined;
     const errorMessage =
       apiResponse?.message ||
-      apiResponse?.Message ||
       (error?.message === "Network Error"
         ? "Could not connect to the server"
         : "An unexpected error occurred");
     throw new ApiErrorHandler({
       success: false,
-      data: undefined,
       message: errorMessage,
-      error: apiResponse?.error ? apiResponse?.error : undefined,
+      error: apiResponse?.error,
+      timestamp: new Date().toISOString(),
     });
   }
 }

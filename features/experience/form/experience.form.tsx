@@ -1,161 +1,208 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { ExperienceFormData, IExperience } from "../types/experience-types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DialogFooter } from "@/components/ui/dialog";
+import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { experienceSchema } from "../schema/experience.schema";
+import { useEffect } from "react";
 
 interface ExperienceFormProps {
   experience?: IExperience;
-  onSave: (data: Partial<IExperience>) => void;
+  onSave: (data: ExperienceFormData) => void;
   onCancel: () => void;
+  serverError?: any;
 }
 
 export default function ExperienceForm({
   experience,
   onSave,
   onCancel,
+  serverError,
 }: ExperienceFormProps) {
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm<ExperienceFormData>({
+  const { control, handleSubmit, setError } = useForm<ExperienceFormData>({
     resolver: zodResolver(experienceSchema),
     defaultValues: {
       jobTitle: experience?.jobTitle || "",
       companyName: experience?.companyName || "",
       startDate: experience?.startDate.slice(0, 7) || "",
-      endDate: experience?.endDate ? experience?.endDate.slice(0, 7) : "",
+      endDate: experience?.endDate ? experience?.endDate.slice(0, 7) : null,
       Descriptions: experience?.Descriptions || "",
       relavantDetails: experience?.relavantDetails || "",
       isCurrent: experience?.isCurrent ?? false,
     },
   });
 
-  const isCurrent = watch("isCurrent");
+  // Apply server validation errors to form
+  useEffect(() => {
+    if (
+      serverError?.validationErrors &&
+      serverError.validationErrors.length > 0
+    ) {
+      serverError.validationErrors.forEach((err: any) => {
+        setError(err.field.name as keyof ExperienceFormData, {
+          message: err.message,
+        });
+      });
+    }
+  }, [serverError, setError]);
+
+  const isCurrent = useWatch({ control, name: "isCurrent" });
   const today = new Date();
   const maxMonth = `${today.getFullYear()}-${String(
     today.getMonth() + 1,
   ).padStart(2, "0")}`;
 
   const onSubmit = (data: ExperienceFormData) => {
-    onSave(data);
+    onSave({
+      ...data,
+      endDate: data.isCurrent ? null : data.endDate,
+    });
   };
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Job Title & Company Name */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="jobTitle" className="text-sm font-medium">
-            Job Title *
-          </Label>
-          <Input
-            id="jobTitle"
-            placeholder="e.g. Senior Frontend Developer"
-            {...register("jobTitle")}
-            className="text-sm"
-          />
-          {errors.jobTitle && (
-            <p className="text-xs text-red-500">{errors.jobTitle.message}</p>
+        <Controller
+          control={control}
+          name="jobTitle"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid || undefined}>
+              <FieldLabel htmlFor="jobTitle">Job Title *</FieldLabel>
+              <Input
+                {...field}
+                id="jobTitle"
+                placeholder="e.g. Senior Frontend Developer"
+                aria-invalid={fieldState.invalid || undefined}
+                className="text-sm"
+              />
+              <FieldError errors={[fieldState.error]} />
+            </Field>
           )}
-        </div>
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="companyName" className="text-sm font-medium">
-            Company Name *
-          </Label>
-          <Input
-            id="companyName"
-            placeholder="e.g. Acme Corp"
-            {...register("companyName")}
-            className="text-sm"
-          />
-          {errors.companyName && (
-            <p className="text-xs text-red-500">{errors.companyName.message}</p>
+        <Controller
+          control={control}
+          name="companyName"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid || undefined}>
+              <FieldLabel htmlFor="companyName">Company Name *</FieldLabel>
+              <Input
+                {...field}
+                id="companyName"
+                placeholder="e.g. Acme Corp"
+                aria-invalid={fieldState.invalid || undefined}
+                className="text-sm"
+              />
+              <FieldError errors={[fieldState.error]} />
+            </Field>
           )}
-        </div>
+        />
       </div>
 
       {/* Dates */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="startDate" className="text-sm font-medium">
-            Start Date *
-          </Label>
-          <Input
-            id="startDate"
-            type="month"
-            max={maxMonth}
-            {...register("startDate")}
-            className="text-sm"
-          />
-          {errors.startDate && (
-            <p className="text-xs text-red-500">{errors.startDate.message}</p>
+        <Controller
+          control={control}
+          name="startDate"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid || undefined}>
+              <FieldLabel htmlFor="startDate">Start Date *</FieldLabel>
+              <Input
+                {...field}
+                id="startDate"
+                type="month"
+                max={maxMonth}
+                aria-invalid={fieldState.invalid || undefined}
+                className="text-sm"
+              />
+              <FieldError errors={[fieldState.error]} />
+            </Field>
           )}
-        </div>
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="endDate" className="text-sm font-medium">
-            End Date
-          </Label>
-          <Input
-            id="endDate"
-            type="month"
-            max={maxMonth}
-            disabled={isCurrent}
-            {...register("endDate")}
-            className="text-sm disabled:opacity-50"
-          />
-        </div>
+        <Controller
+          control={control}
+          name="endDate"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid || undefined}>
+              <FieldLabel htmlFor="endDate">End Date</FieldLabel>
+              <Input
+                {...field}
+                id="endDate"
+                type="month"
+                value={field.value ?? ""}
+                onChange={(e) => field.onChange(e.target.value || null)}
+                max={maxMonth}
+                disabled={isCurrent}
+                aria-invalid={fieldState.invalid || undefined}
+                className="text-sm disabled:opacity-50"
+              />
+              <FieldError errors={[fieldState.error]} />
+            </Field>
+          )}
+        />
 
         <div className="flex items-end">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              {...register("isCurrent")}
-              className="w-4 h-4"
-            />
-            <span className="text-sm font-medium">Currently working</span>
-          </label>
+          <Controller
+            control={control}
+            name="isCurrent"
+            render={({ field: { value, onChange } }) => (
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={value}
+                  onChange={(e) => onChange(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm font-medium">Currently working</span>
+              </label>
+            )}
+          />
         </div>
       </div>
 
       {/* Description */}
-      <div className="space-y-2">
-        <Label htmlFor="Descriptions" className="text-sm font-medium">
-          Description *
-        </Label>
-        <Textarea
-          id="Descriptions"
-          placeholder="Describe your role, responsibilities, and achievements..."
-          {...register("Descriptions")}
-          className="text-sm min-h-24 resize-none"
-        />
-        {errors.Descriptions && (
-          <p className="text-xs text-red-500">{errors.Descriptions.message}</p>
+      <Controller
+        control={control}
+        name="Descriptions"
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid || undefined}>
+            <FieldLabel htmlFor="Descriptions">Description *</FieldLabel>
+            <Textarea
+              {...field}
+              id="Descriptions"
+              placeholder="Describe your role, responsibilities, and achievements..."
+              aria-invalid={fieldState.invalid || undefined}
+              className="text-sm min-h-24 resize-none"
+            />
+            <FieldError errors={[fieldState.error]} />
+          </Field>
         )}
-      </div>
+      />
 
       {/* Relevant Details */}
-      <div className="space-y-2">
-        <Label htmlFor="relavantDetails" className="text-sm font-medium">
-          Relevant Details
-        </Label>
-        <Textarea
-          id="relavantDetails"
-          placeholder="Any additional details, skills, or technologies used..."
-          {...register("relavantDetails")}
-          className="text-sm min-h-20 resize-none"
-        />
-      </div>
+      <Controller
+        control={control}
+        name="relavantDetails"
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid || undefined}>
+            <FieldLabel htmlFor="relavantDetails">Relevant Details</FieldLabel>
+            <Textarea
+              {...field}
+              id="relavantDetails"
+              placeholder="Any additional details, skills, or technologies used..."
+              aria-invalid={fieldState.invalid || undefined}
+              className="text-sm min-h-20 resize-none"
+            />
+            <FieldError errors={[fieldState.error]} />
+          </Field>
+        )}
+      />
 
       {/* Footer Actions */}
       <DialogFooter className="gap-2">
