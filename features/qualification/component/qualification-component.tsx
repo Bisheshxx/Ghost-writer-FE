@@ -14,21 +14,24 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { MoreVertical, Edit, Trash2 } from "lucide-react";
 import QualificationForm from "../form/qualification.form";
 import CustomDialog from "@/shared/component/dialog/CustomDialog";
-import { DIALOG_ENUMS } from "@/shared/constants";
-import useUiState from "@/store/useUIStore";
+import { QUALIFICATION_DIALOGS } from "../constants";
+import { useQualificationUiStore } from "../store/useQualificationUiStore";
 import Loading from "@/app/loading";
-import { useApiQuery } from "@/shared/hooks/useApiQuery";
-import { QualificationServce } from "../service/qualification-service";
 import NothingToDisplay from "@/shared/component/NothingToDisplay";
-import { useApiMutation } from "@/shared/hooks/useApiMutation";
 import { showSuccess } from "@/lib/toast/toast.lib";
 import { QualificationFormData } from "../schema/qualification.schema";
+import {
+  useCreateQualification,
+  useDeleteQualification,
+  useQualifications,
+  useUpdateQualification,
+} from "../application/useQualificationActions";
 
 export default function QualificationComponent() {
-  const { setOpenDialogName } = useUiState();
+  const { setOpenDialogName } = useQualificationUiStore();
 
   const handleAddClick = () => {
-    setOpenDialogName(DIALOG_ENUMS.CREATE_QUALIFICATION);
+    setOpenDialogName(QUALIFICATION_DIALOGS.CREATE);
   };
 
   return (
@@ -51,11 +54,12 @@ export default function QualificationComponent() {
   );
 }
 function QualificationCards() {
-  const { data: qualification, isSuccess } = useApiQuery({
-    queryFn: () => QualificationServce.getQualification(),
-    queryKey: ["qualifications"],
-  });
-
+  const {
+    data: qualification,
+    isSuccess,
+    isLoading,
+  } = useQualifications();
+  if (isLoading) return <Loading />;
   if (isSuccess)
     return (
       <div className="flex-1 min-h-0 overflow-y-auto pr-2 flex flex-col mb-6">
@@ -76,23 +80,19 @@ function QualificationCards() {
 }
 
 function QualificationAddDialog() {
-  const { setOpenDialogName } = useUiState();
+  const { openDialogName, setOpenDialogName } = useQualificationUiStore();
   const [serverError, setServerError] = useState<any>(null);
 
-  const createQualification = useApiMutation(
-    QualificationServce.createQualification,
-    {
-      onSuccess: () => {
-        showSuccess("Qualification added successfully!");
-        setOpenDialogName(null);
-        setServerError(null);
-      },
-      onError: (error) => {
-        setServerError(error);
-      },
-      invalidateQueries: ["qualifications"],
+  const createQualification = useCreateQualification({
+    onSuccess: () => {
+      showSuccess("Qualification added successfully!");
+      setOpenDialogName(null);
+      setServerError(null);
     },
-  );
+    onError: (error) => {
+      setServerError(error);
+    },
+  });
 
   const handleSave = async (data: QualificationFormData) => {
     setServerError(null);
@@ -109,7 +109,9 @@ function QualificationAddDialog() {
       width="md:max-w-5xl"
       title={"Add Qualification"}
       description="Add a new qualification to your profile"
-      dialogName={DIALOG_ENUMS.CREATE_QUALIFICATION}
+      dialogName={QUALIFICATION_DIALOGS.CREATE}
+      openDialogName={openDialogName}
+      onOpenDialogChange={setOpenDialogName}
     >
       <QualificationForm
         onSave={handleSave}
@@ -121,24 +123,20 @@ function QualificationAddDialog() {
 }
 
 function QualificationEditDialog() {
-  const { selectedQualification, setOpenDialogName } = useUiState();
+  const { openDialogName, selectedQualification, setOpenDialogName } =
+    useQualificationUiStore();
   const [serverError, setServerError] = useState<any>(null);
 
-  const editQualification = useApiMutation(
-    ({ id, data }: { id: string; data: QualificationFormData }) =>
-      QualificationServce.editQualification(id, data),
-    {
-      onSuccess: () => {
-        showSuccess("Qualification updated successfully!");
-        setOpenDialogName(null);
-        setServerError(null);
-      },
-      onError: (error: any) => {
-        setServerError(error);
-      },
-      invalidateQueries: ["qualifications"],
+  const editQualification = useUpdateQualification({
+    onSuccess: () => {
+      showSuccess("Qualification updated successfully!");
+      setOpenDialogName(null);
+      setServerError(null);
     },
-  );
+    onError: (error: any) => {
+      setServerError(error);
+    },
+  });
 
   if (!selectedQualification) return null;
 
@@ -160,7 +158,9 @@ function QualificationEditDialog() {
       width="md:max-w-5xl"
       title={"Edit Qualification"}
       description="Update your qualification details below"
-      dialogName={DIALOG_ENUMS.EDIT_QUALIFICATION}
+      dialogName={QUALIFICATION_DIALOGS.EDIT}
+      openDialogName={openDialogName}
+      onOpenDialogChange={setOpenDialogName}
     >
       <QualificationForm
         qualification={selectedQualification}
@@ -173,19 +173,19 @@ function QualificationEditDialog() {
 }
 
 function QualificationDeleteDialog() {
-  const { selectedQualification, setSelectedQualification, setOpenDialogName } =
-    useUiState();
+  const {
+    openDialogName,
+    selectedQualification,
+    setSelectedQualification,
+    setOpenDialogName,
+  } = useQualificationUiStore();
 
-  const DeleteQualification = useApiMutation(
-    QualificationServce.deleteQualification,
-    {
-      onSuccess: () => {
-        showSuccess("Successfully deleted qualification!");
-        setSelectedQualification(null);
-      },
-      invalidateQueries: ["qualifications"],
+  const DeleteQualification = useDeleteQualification({
+    onSuccess: () => {
+      showSuccess("Successfully deleted qualification!");
+      setSelectedQualification(null);
     },
-  );
+  });
 
   if (!selectedQualification) return null;
 
@@ -207,7 +207,9 @@ function QualificationDeleteDialog() {
       width="md:max-w-sm"
       title={"Delete Qualification?"}
       description={`Are you sure you want to delete "${selectedQualification.instituteName}"? This action cannot be undone.`}
-      dialogName={DIALOG_ENUMS.DELETE_QUALIFICATION}
+      dialogName={QUALIFICATION_DIALOGS.DELETE}
+      openDialogName={openDialogName}
+      onOpenDialogChange={setOpenDialogName}
     >
       <DialogFooter className="gap-2">
         <Button variant="outline" onClick={handleCancel} className="text-sm">
@@ -230,7 +232,8 @@ const QualificationCardComponent = ({
 }: {
   qualification: IQualification;
 }) => {
-  const { setOpenDialogName, setSelectedQualification } = useUiState();
+  const { setOpenDialogName, setSelectedQualification } =
+    useQualificationUiStore();
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("en-US", {
@@ -241,12 +244,12 @@ const QualificationCardComponent = ({
 
   const handleEditClick = () => {
     setSelectedQualification(qualification);
-    setOpenDialogName(DIALOG_ENUMS.EDIT_QUALIFICATION);
+    setOpenDialogName(QUALIFICATION_DIALOGS.EDIT);
   };
 
   const handleDeleteClick = () => {
     setSelectedQualification(qualification);
-    setOpenDialogName(DIALOG_ENUMS.DELETE_QUALIFICATION);
+    setOpenDialogName(QUALIFICATION_DIALOGS.DELETE);
   };
 
   return (

@@ -1,4 +1,3 @@
-import { ApiResponse } from "@/shared/types/global.types";
 import { IQualification } from "../types/qualification";
 import { request } from "@/lib/axios/request";
 import { QualificationFormData } from "../schema/qualification.schema";
