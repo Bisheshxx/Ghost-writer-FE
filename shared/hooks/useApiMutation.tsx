@@ -6,7 +6,6 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { ApiResponse } from "../types/global.types";
-import { toast } from "sonner";
 import { ApiErrorHandler } from "../../lib/axios/Api-Error-Handler";
 
 type MutationOptions<TData, TVariables> = Omit<

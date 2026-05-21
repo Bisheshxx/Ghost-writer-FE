@@ -1,9 +1,10 @@
+"use client";
 import { ApiResponse } from "@/shared/types/global.types";
 import { AxiosRequestConfig } from "axios";
 import { ApiErrorHandler } from "./Api-Error-Handler";
 import { api } from "./api";
 
-type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
+type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE" | "PUT";
 
 interface RequestOptions<TRequest = Record<string, unknown>> {
   method: HttpMethod;

@@ -1,15 +1,12 @@
 "use client";
 
-import {
-  useSuspenseQuery,
-  type UseSuspenseQueryOptions,
-} from "@tanstack/react-query";
+import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
 
 import type { ApiResponse } from "../types/global.types";
 import { ApiErrorHandler } from "../../lib/axios/Api-Error-Handler";
 
 type UseApiQueryOptions<TData, TQueryKey extends readonly unknown[]> = Omit<
-  UseSuspenseQueryOptions<
+  UseQueryOptions<
     ApiResponse<TData>,
     ApiErrorHandler,
     ApiResponse<TData>,
@@ -24,7 +21,7 @@ export const useApiQuery = <
 >(
   options: UseApiQueryOptions<TData, TQueryKey>,
 ) => {
-  const response = useSuspenseQuery<
+  const response = useQuery<
     ApiResponse<TData>,
     ApiErrorHandler,
     ApiResponse<TData>,

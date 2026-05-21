@@ -1,39 +1,39 @@
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import useUiState, { DialogEnum } from "@/store/useUIStore";
 import React from "react";
 import { twMerge } from "tailwind-merge";
 
-interface IProps {
+interface IProps<TDialog extends string> {
   button?: React.ReactNode;
   width?: string;
   title: string;
   description: string;
   children: React.ReactNode;
-  dialogName: DialogEnum; //add dialog name in the enum as you create
+  dialogName: TDialog;
+  openDialogName: TDialog | null;
+  onOpenDialogChange: (dialogName: TDialog | null) => void;
 }
 
-export default function CustomDialog({
+export default function CustomDialog<TDialog extends string>({
   button,
   width = "max-w-md",
   title,
   description,
   children,
   dialogName,
-}: IProps) {
-  const { openDialogName, setOpenDialogName } = useUiState();
+  openDialogName,
+  onOpenDialogChange,
+}: IProps<TDialog>) {
   return (
     <Dialog
       open={dialogName === openDialogName}
-      onOpenChange={(open) => setOpenDialogName(open ? dialogName : null)}
+      onOpenChange={(open) => onOpenDialogChange(open ? dialogName : null)}
     >
       {button && <DialogTrigger asChild>{button}</DialogTrigger>}
       <DialogContent className={twMerge("max-h-[90vh] overflow-y-auto", width)}>
