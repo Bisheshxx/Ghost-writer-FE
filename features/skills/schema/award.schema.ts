@@ -1,10 +1,17 @@
 import { z } from "zod";
 
-export const awardSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  details: z.string().optional(),
-  issuer: z.string().optional(),
-  issuedDate: z.string().optional(),
+export const awardListSchema = z.object({
+  awards: z
+    .array(
+      z.object({
+        title: z.string().min(1, "Title is required"),
+        details: z.string().min(1, "Details is required"),
+        issuer: z.string().min(1, "Issuer is required"),
+        issuedDate: z.string(),
+        // _id: z.string(),
+      }),
+    )
+    .min(1, "Add at least one award"),
 });
 
-export type AwardFormData = z.infer<typeof awardSchema>;
+export type AwardFormData = z.infer<typeof awardListSchema>;

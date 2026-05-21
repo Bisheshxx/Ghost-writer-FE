@@ -5,34 +5,23 @@ import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Award } from "../types/skills.d";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
+import { AwardFormData, awardListSchema } from "../schema/award.schema";
+import { useSkillsUiStore } from "../store/useSkillsUiStore";
+import { showSuccess } from "@/lib/toast/toast.lib";
+import { useUpdateAwards } from "../application/useSkillsActions";
 
 interface Props {
   awards: Award[];
-  onSave: (awards: Award[]) => void;
-  onCancel: () => void;
+  id: string | undefined;
 }
 
-const awardListSchema = z.object({
-  awards: z
-    .array(
-      z.object({
-        title: z.string().min(1, "Title is required"),
-        details: z.string().min(1, "Details is required"),
-        issuer: z.string().min(1, "Issuer is required"),
-        issuedDate: z.string(),
-        _id: z.string(),
-      }),
-    )
-    .min(1, "Add at least one award"),
-});
-
-export default function AwardListForm({ awards, onSave, onCancel }: Props) {
-  const { control, handleSubmit } = useForm({
+export default function AwardListForm({ awards, id }: Props) {
+  const { setOpenDialogName } = useSkillsUiStore();
+  const { control, handleSubmit } = useForm<AwardFormData>({
     resolver: zodResolver(awardListSchema),
     defaultValues: { awards: awards.map((a) => ({ ...a })) },
   });
@@ -40,12 +29,21 @@ export default function AwardListForm({ awards, onSave, onCancel }: Props) {
   const { fields, append, remove } = useFieldArray({ control, name: "awards" });
 
   const onAddAward = () =>
-    append({ title: "", details: "", issuer: "", issuedDate: "", _id: "" });
+    append({ title: "", details: "", issuer: "", issuedDate: "" });
 
   const onRemoveAward = (index: number) => remove(index);
 
-  const submit = (data: any) => {
-    onSave(data.awards);
+  const updateAwardList = useUpdateAwards({
+    onSuccess: () => {
+      showSuccess("Personal Skill has been updated successfully!");
+      setOpenDialogName(null);
+    },
+  });
+
+  const submit = async (data: AwardFormData) => {
+    // onSave(data.awards);
+    if (!id) return;
+    await updateAwardList.mutateAsync({ id, data });
   };
 
   return (
@@ -162,7 +160,7 @@ export default function AwardListForm({ awards, onSave, onCancel }: Props) {
         <Button
           type="button"
           variant="outline"
-          onClick={onCancel}
+          onClick={() => setOpenDialogName(null)}
           className="text-xs sm:text-sm"
         >
           Cancel

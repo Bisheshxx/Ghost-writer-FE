@@ -21,3 +21,18 @@ export interface Award {
   issuedDate: string;
   _id: string;
 }
+
+export interface IPersonalSkill {
+  _id: string;
+  personalSkills: string[];
+}
+
+export interface IAwards {
+  _id: string;
+  awards: Award[];
+}
+
+export interface ITechnicalSkill {
+  _id: string;
+  technicalSkills: TechnicalSkill[];
+}

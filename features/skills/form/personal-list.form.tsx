@@ -4,43 +4,40 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DialogFooter } from "@/components/ui/dialog";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Field, FieldError } from "@/components/ui/field";
+import {
+  PersonalFormData,
+  personalListSchema,
+} from "../schema/personal.schema";
+import { useSkillsUiStore } from "../store/useSkillsUiStore";
+import { showSuccess } from "@/lib/toast/toast.lib";
+import { useUpdatePersonalSkills } from "../application/useSkillsActions";
 
 interface Props {
   personalSkills: string[];
-  onSave: (skills: string[]) => void;
-  onCancel: () => void;
+  id: string | undefined;
 }
 
-const personalListSchema = z.object({
-  personalSkills: z
-    .array(z.string().min(1, "Skill cannot be empty"))
-    .min(1, "Add at least one skill"),
-});
-
-type FormValues = {
-  personalSkills: string[];
-};
-
-export default function PersonalListForm({
-  personalSkills,
-  onSave,
-  onCancel,
-}: Props) {
+export default function PersonalListForm({ personalSkills, id }: Props) {
   const [tempVal, setTempVal] = React.useState("");
+  const { setOpenDialogName } = useSkillsUiStore();
 
-  const { control, handleSubmit, setValue, getValues } = useForm<FormValues>({
+  const { control, handleSubmit, setValue } = useForm<PersonalFormData>({
     resolver: zodResolver(personalListSchema),
     defaultValues: { personalSkills },
+  });
+
+  const skills = useWatch({
+    control,
+    name: "personalSkills",
   });
 
   const onAddSkill = (value: string) => {
     const val = value.trim();
     if (!val) return;
-    const current: string[] = getValues("personalSkills") || [];
+    const current: string[] = skills || [];
     const next = Array.from(new Set([...(current || []), val]));
     setValue("personalSkills", next, {
       shouldValidate: true,
@@ -49,16 +46,24 @@ export default function PersonalListForm({
   };
 
   const onRemoveSkill = (skill: string) => {
-    const current: string[] = getValues("personalSkills") || [];
+    const current: string[] = skills || [];
     const next = current.filter((s) => s !== skill);
-    setValue("personalSkills", next, {
-      shouldValidate: true,
+    setValue("personalSkills", next || [], {
+      shouldValidate: false,
       shouldDirty: true,
     });
   };
 
-  const submit = (data: FormValues) => {
-    onSave(data.personalSkills);
+  const updatePersonalList = useUpdatePersonalSkills({
+    onSuccess: () => {
+      showSuccess("Personal Skill has been updated successfully!");
+      setOpenDialogName(null);
+    },
+  });
+
+  const submit = async (data: PersonalFormData) => {
+    if (!id) return;
+    await updatePersonalList.mutateAsync({ id, data });
   };
 
   return (
@@ -68,23 +73,21 @@ export default function PersonalListForm({
           Personal Skills *
         </div>
         <div className="flex flex-wrap gap-2 mt-2">
-          {(getValues("personalSkills") || personalSkills || []).map(
-            (skill: string) => (
-              <span
-                key={skill}
-                className="inline-flex items-center gap-2 bg-gray-50 border rounded-full px-2 py-1 text-xs"
+          {(skills || personalSkills || []).map((skill: string) => (
+            <span
+              key={skill}
+              className="inline-flex items-center gap-2 bg-gray-50 border rounded-full px-2 py-1 text-xs"
+            >
+              <span>{skill}</span>
+              <button
+                type="button"
+                onClick={() => onRemoveSkill(skill)}
+                className="text-gray-500 hover:text-gray-800"
               >
-                <span>{skill}</span>
-                <button
-                  type="button"
-                  onClick={() => onRemoveSkill(skill)}
-                  className="text-gray-500 hover:text-gray-800"
-                >
-                  ×
-                </button>
-              </span>
-            ),
-          )}
+                ×
+              </button>
+            </span>
+          ))}
         </div>
 
         <div className="mt-3">
@@ -119,7 +122,7 @@ export default function PersonalListForm({
         <Button
           type="button"
           variant="outline"
-          onClick={onCancel}
+          onClick={() => setOpenDialogName(null)}
           className="text-xs sm:text-sm"
         >
           Cancel
