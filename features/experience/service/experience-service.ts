@@ -1,6 +1,4 @@
 import { request } from "@/lib/axios/request";
-import { ApiResponse } from "@/shared/types/global.types";
-import React from "react";
 import { ExperienceFormData, IExperience } from "../types/experience-types";
 
 export const ExperienceService = {

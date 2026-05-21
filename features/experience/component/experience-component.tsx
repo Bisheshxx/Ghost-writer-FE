@@ -13,22 +13,25 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { MoreVertical, Edit, Trash2 } from "lucide-react";
 import ExperienceForm from "../form/experience.form";
 import CustomDialog from "@/shared/component/dialog/CustomDialog";
-import { DIALOG_ENUMS } from "@/shared/constants";
-import useUiState from "@/store/useUIStore";
-import { useApiQuery } from "@/shared/hooks/useApiQuery";
-import { ExperienceService } from "../service/experience-service";
-import { Suspense, useState } from "react";
+import { EXPERIENCE_DIALOGS } from "../constants";
+import { useExperienceUiStore } from "../store/useExperienceUiStore";
+import { useState } from "react";
 import Loading from "@/app/loading";
-import { useApiMutation } from "@/shared/hooks/useApiMutation";
 
 import { showSuccess } from "@/lib/toast/toast.lib";
 import NothingToDisplay from "@/shared/component/NothingToDisplay";
+import {
+  useCreateExperience,
+  useDeleteExperience,
+  useExperiences,
+  useUpdateExperience,
+} from "../application/useExperienceActions";
 
 export default function ExperienceComponent() {
-  const { setOpenDialogName } = useUiState();
+  const { setOpenDialogName } = useExperienceUiStore();
 
   const handleAddClick = () => {
-    setOpenDialogName(DIALOG_ENUMS.CREATE_EXPERIENCE);
+    setOpenDialogName(EXPERIENCE_DIALOGS.CREATE);
   };
 
   return (
@@ -39,9 +42,8 @@ export default function ExperienceComponent() {
           Add Experience
         </Button>
       </div>
-      <Suspense fallback={<Loading />}>
-        <ExperiencesCards />
-      </Suspense>
+      <ExperiencesCards />
+
       <ExperienceAddDialog />
 
       <ExperienceEditDialog />
@@ -52,10 +54,12 @@ export default function ExperienceComponent() {
 }
 
 function ExperiencesCards() {
-  const { data: experience, isSuccess } = useApiQuery({
-    queryFn: () => ExperienceService.getExperience(),
-    queryKey: ["experience"],
-  });
+  const {
+    data: experience,
+    isSuccess,
+    isLoading,
+  } = useExperiences();
+  if (isLoading) return <Loading />;
 
   if (isSuccess)
     return (
@@ -72,10 +76,10 @@ function ExperiencesCards() {
 }
 
 function ExperienceAddDialog() {
-  const { setOpenDialogName } = useUiState();
+  const { openDialogName, setOpenDialogName } = useExperienceUiStore();
   const [serverError, setServerError] = useState<any>(null);
 
-  const createExperience = useApiMutation(ExperienceService.createExperience, {
+  const createExperience = useCreateExperience({
     onSuccess: () => {
       showSuccess("Experience added successfully!");
       setOpenDialogName(null);
@@ -84,7 +88,6 @@ function ExperienceAddDialog() {
     onError: (error) => {
       setServerError(error);
     },
-    invalidateQueries: ["experience"],
   });
 
   const handleSave = async (data: ExperienceFormData) => {
@@ -102,7 +105,9 @@ function ExperienceAddDialog() {
       width="md:max-w-5xl"
       title={"Add Experience"}
       description="Add a new experience to your profile"
-      dialogName={DIALOG_ENUMS.CREATE_EXPERIENCE}
+      dialogName={EXPERIENCE_DIALOGS.CREATE}
+      openDialogName={openDialogName}
+      onOpenDialogChange={setOpenDialogName}
     >
       <ExperienceForm
         onSave={handleSave}
@@ -114,24 +119,20 @@ function ExperienceAddDialog() {
 }
 
 function ExperienceEditDialog() {
-  const { selectedExperience, setOpenDialogName } = useUiState();
+  const { openDialogName, selectedExperience, setOpenDialogName } =
+    useExperienceUiStore();
   const [serverError, setServerError] = useState<any>(null);
 
-  const editExperience = useApiMutation(
-    ({ id, data }: { id: string; data: ExperienceFormData }) =>
-      ExperienceService.editExperience(id, data),
-    {
-      onSuccess: () => {
-        showSuccess("Experience updated successfully!");
-        setOpenDialogName(null);
-        setServerError(null);
-      },
-      onError: (error: any) => {
-        setServerError(error);
-      },
-      invalidateQueries: ["experience"],
+  const editExperience = useUpdateExperience({
+    onSuccess: () => {
+      showSuccess("Experience updated successfully!");
+      setOpenDialogName(null);
+      setServerError(null);
     },
-  );
+    onError: (error: any) => {
+      setServerError(error);
+    },
+  });
 
   if (!selectedExperience) return null;
 
@@ -153,7 +154,9 @@ function ExperienceEditDialog() {
       width="md:max-w-5xl"
       title={"Edit Experience"}
       description="Update your experience details below"
-      dialogName={DIALOG_ENUMS.EDIT_EXPERIENCE}
+      dialogName={EXPERIENCE_DIALOGS.EDIT}
+      openDialogName={openDialogName}
+      onOpenDialogChange={setOpenDialogName}
     >
       <ExperienceForm
         experience={selectedExperience}
@@ -166,15 +169,18 @@ function ExperienceEditDialog() {
 }
 
 function ExperienceDeleteDialog() {
-  const { selectedExperience, setSelectedExperience, setOpenDialogName } =
-    useUiState();
+  const {
+    openDialogName,
+    selectedExperience,
+    setSelectedExperience,
+    setOpenDialogName,
+  } = useExperienceUiStore();
 
-  const DeleteExperience = useApiMutation(ExperienceService.deleteExperience, {
+  const DeleteExperience = useDeleteExperience({
     onSuccess: () => {
       showSuccess("Successfully deleted experience!");
       setSelectedExperience(null);
     },
-    invalidateQueries: ["experience"],
   });
 
   if (!selectedExperience) return null;
@@ -197,7 +203,9 @@ function ExperienceDeleteDialog() {
       width="md:max-w-sm"
       title={"Delete Experience?"}
       description={`Are you sure you want to delete "${selectedExperience.jobTitle}" at "${selectedExperience.companyName}"? This action cannot be undone.`}
-      dialogName={DIALOG_ENUMS.DELETE_EXPERIENCE}
+      dialogName={EXPERIENCE_DIALOGS.DELETE}
+      openDialogName={openDialogName}
+      onOpenDialogChange={setOpenDialogName}
     >
       <DialogFooter className="gap-2">
         <Button variant="outline" onClick={handleCancel} className="text-sm">
@@ -220,7 +228,7 @@ const ExperienceCardComponent = ({
 }: {
   experience: IExperience;
 }) => {
-  const { setOpenDialogName, setSelectedExperience } = useUiState();
+  const { setOpenDialogName, setSelectedExperience } = useExperienceUiStore();
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
@@ -229,12 +237,12 @@ const ExperienceCardComponent = ({
   };
   const handleEditClick = () => {
     setSelectedExperience(experience);
-    setOpenDialogName(DIALOG_ENUMS.EDIT_EXPERIENCE);
+    setOpenDialogName(EXPERIENCE_DIALOGS.EDIT);
   };
 
   const handleDeleteClick = () => {
     setSelectedExperience(experience);
-    setOpenDialogName(DIALOG_ENUMS.DELETE_EXPERIENCE);
+    setOpenDialogName(EXPERIENCE_DIALOGS.DELETE);
   };
 
   return (
