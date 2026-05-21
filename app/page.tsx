@@ -1,6 +1,6 @@
 "use client";
-import { ResizableComponent } from "@/components/ResizableComponent";
+import { WorkspaceLayout } from "@/features/workspace/components/WorkspaceLayout";
 
 export default function Home() {
-  return <ResizableComponent />;
+  return <WorkspaceLayout />;
 }
