@@ -25,7 +25,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${robotoMono.variable} antialiased`}>
-        <ClerkProvider>
+        <ClerkProvider
+          signInFallbackRedirectUrl="/"
+          signInUrl="/sign-in"
+          signUpFallbackRedirectUrl="/"
+          signUpUrl="/sign-up"
+        >
           <Show when="signed-in">
             <Navbar />
           </Show>

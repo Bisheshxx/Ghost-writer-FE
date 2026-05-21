@@ -1,9 +1,13 @@
-import { SignIn } from "@clerk/nextjs";
+import AuthShell from "@/features/auth/components/AuthShell";
+import CustomSignIn from "@/features/auth/components/CustomSignIn";
 
 export default function Page() {
   return (
-    <div className="w-full h-screen flex justify-center items-center">
-      <SignIn />;
-    </div>
+    <AuthShell
+      description="Sign in to continue managing your job details, projects, skills, and cover letters."
+      title="Welcome back"
+    >
+      <CustomSignIn />
+    </AuthShell>
   );
 }
