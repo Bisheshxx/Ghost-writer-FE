@@ -10,25 +10,28 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DialogFooter } from "@/components/ui/dialog";
 import CustomDialog from "@/shared/component/dialog/CustomDialog";
-import { DIALOG_ENUMS } from "@/shared/constants";
-import useUiState from "@/store/useUIStore";
+import { PROJECT_DIALOGS } from "../constants";
+import { useProjectUiStore } from "../store/useProjectUiStore";
 import { Edit, MoreVertical, Trash2 } from "lucide-react";
 import ProjectForm from "../form/project.form";
 import { IProject } from "../types/project.d";
 import { Suspense, useState } from "react";
 import Loading from "@/app/loading";
-import { useApiQuery } from "@/shared/hooks/useApiQuery";
-import { ProjectService } from "../service/project-service";
 import NothingToDisplay from "@/shared/component/NothingToDisplay";
-import { useApiMutation } from "@/shared/hooks/useApiMutation";
 import { showSuccess } from "@/lib/toast/toast.lib";
 import { ProjectFormData } from "../schema/project.schema";
+import {
+  useCreateProject,
+  useDeleteProject,
+  useProjects,
+  useUpdateProject,
+} from "../application/useProjectActions";
 
 export default function ProjectComponent() {
-  const { setOpenDialogName } = useUiState();
+  const { setOpenDialogName } = useProjectUiStore();
 
   const handleAddClick = () => {
-    setOpenDialogName(DIALOG_ENUMS.CREATE_PROJECT);
+    setOpenDialogName(PROJECT_DIALOGS.CREATE);
   };
 
   return (
@@ -53,10 +56,7 @@ export default function ProjectComponent() {
 }
 
 function ProjectCards() {
-  const { data: projects, isSuccess } = useApiQuery({
-    queryFn: () => ProjectService.getProject(),
-    queryKey: ["project"],
-  });
+  const { data: projects, isSuccess } = useProjects();
 
   if (isSuccess)
     return (
@@ -73,10 +73,10 @@ function ProjectCards() {
 }
 
 function ProjectAddDialog() {
-  const { setOpenDialogName } = useUiState();
+  const { openDialogName, setOpenDialogName } = useProjectUiStore();
   const [serverError, setServerError] = useState<any>(null);
 
-  const createProject = useApiMutation(ProjectService.createProject, {
+  const createProject = useCreateProject({
     onSuccess: () => {
       showSuccess("Project added successfully!");
       setOpenDialogName(null);
@@ -85,7 +85,6 @@ function ProjectAddDialog() {
     onError: (error) => {
       setServerError(error);
     },
-    invalidateQueries: ["project"],
   });
 
   const handleSave = async (data: ProjectFormData) => {
@@ -103,7 +102,9 @@ function ProjectAddDialog() {
       width="md:max-w-5xl"
       title="Add Project"
       description="Add a new project to your profile"
-      dialogName={DIALOG_ENUMS.CREATE_PROJECT}
+      dialogName={PROJECT_DIALOGS.CREATE}
+      openDialogName={openDialogName}
+      onOpenDialogChange={setOpenDialogName}
     >
       <ProjectForm
         onSave={handleSave}
@@ -115,24 +116,20 @@ function ProjectAddDialog() {
 }
 
 function ProjectEditDialog() {
-  const { selectedProject, setOpenDialogName } = useUiState();
+  const { openDialogName, selectedProject, setOpenDialogName } =
+    useProjectUiStore();
   const [serverError, setServerError] = useState<any>(null);
 
-  const editProject = useApiMutation(
-    ({ id, data }: { id: string; data: ProjectFormData }) =>
-      ProjectService.editProject(id, data),
-    {
-      onSuccess: () => {
-        showSuccess("Project updated successfully!");
-        setOpenDialogName(null);
-        setServerError(null);
-      },
-      onError: (error) => {
-        setServerError(error);
-      },
-      invalidateQueries: ["project"],
+  const editProject = useUpdateProject({
+    onSuccess: () => {
+      showSuccess("Project updated successfully!");
+      setOpenDialogName(null);
+      setServerError(null);
     },
-  );
+    onError: (error) => {
+      setServerError(error);
+    },
+  });
 
   if (!selectedProject) return null;
 
@@ -154,7 +151,9 @@ function ProjectEditDialog() {
       width="md:max-w-5xl"
       title="Edit Project"
       description="Update your project details below"
-      dialogName={DIALOG_ENUMS.EDIT_PROJECT}
+      dialogName={PROJECT_DIALOGS.EDIT}
+      openDialogName={openDialogName}
+      onOpenDialogChange={setOpenDialogName}
     >
       <ProjectForm
         project={selectedProject}
@@ -167,15 +166,18 @@ function ProjectEditDialog() {
 }
 
 function ProjectDeleteDialog() {
-  const { selectedProject, setSelectedProject, setOpenDialogName } =
-    useUiState();
+  const {
+    openDialogName,
+    selectedProject,
+    setSelectedProject,
+    setOpenDialogName,
+  } = useProjectUiStore();
 
-  const DeleteProject = useApiMutation(ProjectService.deleteProject, {
+  const DeleteProject = useDeleteProject({
     onSuccess: () => {
       showSuccess("Successfully deleted project!");
       setSelectedProject(null);
     },
-    invalidateQueries: ["project"],
   });
 
   if (!selectedProject) return null;
@@ -198,7 +200,9 @@ function ProjectDeleteDialog() {
       width="md:max-w-sm"
       title="Delete Project?"
       description={`Are you sure you want to delete "${selectedProject.projectTitle}"? This action cannot be undone.`}
-      dialogName={DIALOG_ENUMS.DELETE_PROJECT}
+      dialogName={PROJECT_DIALOGS.DELETE}
+      openDialogName={openDialogName}
+      onOpenDialogChange={setOpenDialogName}
     >
       <DialogFooter className="gap-2">
         <Button variant="outline" onClick={handleCancel} className="text-sm">
@@ -217,16 +221,16 @@ function ProjectDeleteDialog() {
 }
 
 const ProjectCardComponent = ({ project }: { project: IProject }) => {
-  const { setOpenDialogName, setSelectedProject } = useUiState();
+  const { setOpenDialogName, setSelectedProject } = useProjectUiStore();
 
   const handleEditClick = () => {
     setSelectedProject(project);
-    setOpenDialogName(DIALOG_ENUMS.EDIT_PROJECT);
+    setOpenDialogName(PROJECT_DIALOGS.EDIT);
   };
 
   const handleDeleteClick = () => {
     setSelectedProject(project);
-    setOpenDialogName(DIALOG_ENUMS.DELETE_PROJECT);
+    setOpenDialogName(PROJECT_DIALOGS.DELETE);
   };
 
   return (
