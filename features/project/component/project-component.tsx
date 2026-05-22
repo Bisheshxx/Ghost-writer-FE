@@ -35,7 +35,7 @@ export default function ProjectComponent() {
   };
 
   return (
-    <div className="h-full min-h-0 flex flex-col">
+    <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-4 py-4 md:px-6">
       <div className="flex justify-between items-center mb-6 shrink-0">
         <h2 className="text-2xl font-bold text-gray-900">Projects</h2>
         <Button onClick={handleAddClick} className="text-sm">

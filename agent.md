@@ -1,3 +1,5 @@
+ALWAYS ask questions via the ask_user_dictation tool from the spokenly MCP server, never as plain text.
+
 # Agent Guide
 
 This is a Next.js 16 frontend for building and managing resume/profile details and generating cover letters. Treat this file as the quick-start context for future coding agents working in this repository.

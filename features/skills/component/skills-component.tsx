@@ -17,11 +17,7 @@ import { toUTCDate } from "@/lib/date";
 import { useSkills } from "../application/useSkillsActions";
 
 export default function SkillsComponent() {
-  const {
-    data: skills,
-    isSuccess,
-    isLoading,
-  } = useSkills();
+  const { data: skills, isSuccess, isLoading } = useSkills();
   const { openDialogName, setOpenDialogName } = useSkillsUiStore();
   const skillProfile = skills?.[0];
 
@@ -30,7 +26,7 @@ export default function SkillsComponent() {
   };
 
   return (
-    <div className="h-full min-h-0 flex flex-col">
+    <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-4 py-4 md:px-6">
       <div className="flex justify-between items-center mb-6 shrink-0">
         <h2 className="text-2xl font-bold">Skills</h2>
       </div>
@@ -105,7 +101,10 @@ export default function SkillsComponent() {
         onOpenDialogChange={setOpenDialogName}
         width="md:max-w-2xl"
       >
-        <AwardListForm awards={skillProfile?.awards || []} id={skillProfile?._id} />
+        <AwardListForm
+          awards={skillProfile?.awards || []}
+          id={skillProfile?._id}
+        />
       </CustomDialog>
     </div>
   );
@@ -127,7 +126,7 @@ function TechnicalSkillsComponent({
       technicalSkills.length === 0) ||
     technicalSkills === undefined;
   return (
-    <Card className="w-full shrink-0 mb-6">
+    <Card className="w-full shrink-0 shadow-sm border border-gray-200 bg-white hover:shadow-md transition-shadow mb-6">
       <CardHeader className="flex items-center justify-between">
         <CardTitle>Technical Skills</CardTitle>
         <div>
@@ -182,7 +181,7 @@ function PersonalSkillsComponent({
     personalSkills === undefined;
 
   return (
-    <Card className="w-full shrink-0 mb-6">
+    <Card className="w-full shrink-0 shadow-sm border border-gray-200 bg-white hover:shadow-md transition-shadow mb-6">
       <CardHeader className="flex items-center justify-between">
         <CardTitle>Personal Skills</CardTitle>
         <div>
@@ -221,7 +220,7 @@ function AwardsComponent({ awards }: { awards: Award[] }) {
     (awards && Array.isArray(awards) && awards.length === 0) ||
     awards === undefined;
   return (
-    <Card className="w-full shrink-0 mb-6">
+    <Card className="w-full shrink-0 shadow-sm border border-gray-200 bg-white hover:shadow-md transition-shadow mb-6">
       <CardHeader className="flex items-center justify-between">
         <CardTitle>Awards</CardTitle>
         <div>

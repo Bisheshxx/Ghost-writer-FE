@@ -1,6 +1,5 @@
-"use client";
-import { WorkspaceLayout } from "@/features/workspace/components/WorkspaceLayout";
+import JobTrackerPage from "@/features/job-tracker";
 
-export default function Home() {
-  return <WorkspaceLayout />;
+export default function Page() {
+  return <JobTrackerPage />;
 }
