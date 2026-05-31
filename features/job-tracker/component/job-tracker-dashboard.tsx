@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { showError, showSuccess } from "@/lib/toast/toast.lib";
+import { useDebounce } from "@/shared/hooks/useDebounce";
 
 import {
   useCreateJob,
@@ -39,14 +40,15 @@ export default function JobTrackerDashboard() {
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
+  const debouncedQuery = useDebounce(query, 300);
 
   const listParams = useMemo(
     () => ({
       limit: PAGE_LIMIT,
       page,
-      search: query.trim(),
+      search: debouncedQuery.trim(),
     }),
-    [page, query],
+    [page, debouncedQuery],
   );
   const jobsQuery = useJobs(listParams);
   const jobRows = jobsQuery.data;
