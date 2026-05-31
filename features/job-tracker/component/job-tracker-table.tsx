@@ -33,7 +33,8 @@ type JobTrackerTableProps = {
   selectedIds: string[];
   onClearSearch: () => void;
   onCreateEntry: () => void;
-  onDeleteRow: (rowId: string) => void;
+  onDeleteRow: (row: JobRow) => void;
+  onEditRow: (row: JobRow) => void;
   onGenerateRow: (rowId: string) => void;
   onStatusChange: (rowId: string, status: JobStatus) => void;
   onToggleAll: () => void;
@@ -49,6 +50,7 @@ export default function JobTrackerTable({
   onClearSearch,
   onCreateEntry,
   onDeleteRow,
+  onEditRow,
   onGenerateRow,
   onStatusChange,
   onToggleAll,
@@ -64,7 +66,7 @@ export default function JobTrackerTable({
           onCreateEntry={onCreateEntry}
         />
       ) : (
-        <Table className="min-w-[1300px]">
+        <Table className="min-w-[1100px]">
           <TableHeader className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
             <TableRow>
               <TableHead className="px-4 py-3">
@@ -89,6 +91,7 @@ export default function JobTrackerTable({
                 isSelected={selectedIds.includes(row.id)}
                 row={row}
                 onDeleteRow={onDeleteRow}
+                onEditRow={onEditRow}
                 onGenerateRow={onGenerateRow}
                 onStatusChange={onStatusChange}
                 onToggleRow={onToggleRow}
@@ -106,6 +109,7 @@ function JobTrackerTableRow({
   isSelected,
   row,
   onDeleteRow,
+  onEditRow,
   onGenerateRow,
   onStatusChange,
   onToggleRow,
@@ -113,7 +117,8 @@ function JobTrackerTableRow({
   isGenerating: boolean;
   isSelected: boolean;
   row: JobRow;
-  onDeleteRow: (rowId: string) => void;
+  onDeleteRow: (row: JobRow) => void;
+  onEditRow: (row: JobRow) => void;
   onGenerateRow: (rowId: string) => void;
   onStatusChange: (rowId: string, status: JobStatus) => void;
   onToggleRow: (rowId: string) => void;
@@ -129,11 +134,6 @@ function JobTrackerTableRow({
       </TableCell>
       <TableCell className="px-4 py-4 font-medium">{row.company}</TableCell>
       <TableCell className="px-4 py-4">{row.title}</TableCell>
-      <TableCell className="max-w-[360px] px-4 py-4 text-muted-foreground">
-        <p className="truncate">
-          {row.description}
-        </p>
-      </TableCell>
       <TableCell className="px-4 py-4">{row.location}</TableCell>
       <TableCell className="px-4 py-4">
         <StatusSelect
@@ -171,12 +171,13 @@ function JobTrackerTableRow({
             icon={PencilLine}
             label="Edit"
             ariaLabel="Edit generation"
+            onClick={() => onEditRow(row)}
           />
           <IconTooltipButton
             icon={Trash2}
             label="Delete"
             ariaLabel="Delete generation"
-            onClick={() => onDeleteRow(row.id)}
+            onClick={() => onDeleteRow(row)}
           />
           <IconTooltipButton
             icon={Play}

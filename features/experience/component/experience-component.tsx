@@ -26,6 +26,7 @@ import {
   useExperiences,
   useUpdateExperience,
 } from "../application/useExperienceActions";
+import PageTitle from "@/components/page-title";
 
 export default function ExperienceComponent() {
   const { setOpenDialogName } = useExperienceUiStore();
@@ -36,12 +37,7 @@ export default function ExperienceComponent() {
 
   return (
     <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-4 py-4 md:px-6">
-      <div className="flex justify-between items-center mb-6 shrink-0">
-        <h2 className="text-2xl font-bold text-gray-900">Experience</h2>
-        <Button onClick={handleAddClick} className="text-sm">
-          Add Experience
-        </Button>
-      </div>
+      <PageTitle title="Experience" handleAddClick={handleAddClick} />
       <ExperiencesCards />
 
       <ExperienceAddDialog />

@@ -15,6 +15,7 @@ import NothingToDisplay from "@/shared/component/NothingToDisplay";
 import Loading from "@/app/loading";
 import { toUTCDate } from "@/lib/date";
 import { useSkills } from "../application/useSkillsActions";
+import PageTitle from "@/components/page-title";
 
 export default function SkillsComponent() {
   const { data: skills, isSuccess, isLoading } = useSkills();
@@ -27,9 +28,7 @@ export default function SkillsComponent() {
 
   return (
     <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-4 py-4 md:px-6">
-      <div className="flex justify-between items-center mb-6 shrink-0">
-        <h2 className="text-2xl font-bold">Skills</h2>
-      </div>
+      <PageTitle title="Skill" />
 
       <div className="flex-1 min-h-0 overflow-y-auto pr-2 flex flex-col space-y-6">
         {isLoading ? (

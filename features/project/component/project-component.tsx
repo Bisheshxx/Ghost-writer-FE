@@ -26,6 +26,7 @@ import {
   useProjects,
   useUpdateProject,
 } from "../application/useProjectActions";
+import PageTitle from "@/components/page-title";
 
 export default function ProjectComponent() {
   const { setOpenDialogName } = useProjectUiStore();
@@ -36,12 +37,7 @@ export default function ProjectComponent() {
 
   return (
     <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-4 py-4 md:px-6">
-      <div className="flex justify-between items-center mb-6 shrink-0">
-        <h2 className="text-2xl font-bold text-gray-900">Projects</h2>
-        <Button onClick={handleAddClick} className="text-sm">
-          Add Project
-        </Button>
-      </div>
+      <PageTitle title="Project" handleAddClick={handleAddClick} />
       <Suspense fallback={<Loading />}>
         <ProjectCards />
       </Suspense>

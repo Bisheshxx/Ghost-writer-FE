@@ -6,6 +6,8 @@ export type JobStatus =
   | "Rejected"
   | "Interview stage";
 
+export type JobSortOrder = "asc" | "desc";
+
 export type JobRow = {
   id: string;
   company: string;
@@ -25,6 +27,7 @@ export type JobsListParams = {
   limit?: number;
   search?: string;
   status?: JobStatus | "";
+  sortOrder?: JobSortOrder;
 };
 
 export type CreateJobPayload = {

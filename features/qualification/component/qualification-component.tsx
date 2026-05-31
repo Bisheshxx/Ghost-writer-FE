@@ -26,6 +26,7 @@ import {
   useQualifications,
   useUpdateQualification,
 } from "../application/useQualificationActions";
+import PageTitle from "@/components/page-title";
 
 export default function QualificationComponent() {
   const { setOpenDialogName } = useQualificationUiStore();
@@ -36,12 +37,7 @@ export default function QualificationComponent() {
 
   return (
     <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-4 py-4 md:px-6">
-      <div className="flex justify-between items-center mb-6 shrink-0">
-        <h2 className="text-2xl font-bold text-gray-900">Qualification</h2>
-        <Button onClick={handleAddClick} className="text-sm">
-          Add Qualification
-        </Button>
-      </div>
+      <PageTitle title="Qualification" handleAddClick={handleAddClick} />
       <Suspense fallback={<Loading />}>
         <QualificationCards />
       </Suspense>
