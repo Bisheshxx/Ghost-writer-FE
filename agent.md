@@ -2,7 +2,7 @@ ALWAYS ask questions via the ask_user_dictation tool from the spokenly MCP serve
 
 # Agent Guide
 
-This is a Next.js 16 frontend for building and managing resume/profile details and generating cover letters. Treat this file as the quick-start context for future coding agents working in this repository.
+This is a Next.js 16 frontend for tracking job applications, managing resume/profile details, and generating resume and cover letter content. Treat this file as the quick-start context for future coding agents working in this repository.
 
 ## Project Stack
 
@@ -26,12 +26,14 @@ pnpm dev
 pnpm build
 pnpm start
 pnpm lint
+pnpm sync:api
 ```
 
-Docker production build/run is available with:
+Docker production build/run is available with the root `Dockerfile`:
 
 ```bash
-docker compose up ghost --build
+docker build -t ghost-frontend .
+docker run --env-file .env -p 3000:3000 ghost-frontend
 ```
 
 The Next config uses `output: "standalone"` for containerized deployment.
@@ -50,18 +52,26 @@ Axios appends `/api`, so service URLs such as `v1/experience` resolve to:
 ${NEXT_PUBLIC_API_URL}/api/v1/experience
 ```
 
-Clerk environment variables are also required for local auth, though they are not currently documented in the repo.
+Clerk environment variables are also required for local auth:
+
+```bash
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/
+NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/
+```
+
+The backend Swagger snapshot lives in `openapi/swagger.json`. Refresh it with `pnpm sync:api`; the script defaults to `http://localhost:5001/api-docs.json` and accepts a `SWAGGER_URL` override.
 
 ## Application Shape
 
-- `app/layout.tsx` wraps the app in `ClerkProvider`, conditionally shows `Navbar` for signed-in users, installs `TanStackQueryProvider`, and mounts the Sonner toaster.
-- `app/page.tsx` renders the main split-pane workspace through `components/ResizableComponent.tsx`.
-- `components/ResizableComponent.tsx` creates the primary UI:
-  - left panel: profile detail tabs
-  - upper right panel: cover letter prompt form
-  - lower right panel: cover letter output
-- `app/sign-in/[[...sign-in]]/page.tsx` contains the Clerk sign-in route.
-- `app/experience/page.tsx` currently routes to the experience feature page.
+- `app/layout.tsx` wraps the app in `ClerkProvider`, shows `AppShell` for signed-in users, installs `TanStackQueryProvider`, and mounts the Sonner toaster.
+- `app/page.tsx` renders the job tracker dashboard through `features/job-tracker`.
+- `components/app-shell.tsx` provides the authenticated sidebar navigation and Clerk user menu.
+- `components/ResizableComponent.tsx` still wraps `features/workspace/components/WorkspaceLayout.tsx` for the split-pane profile and cover letter workspace, but it is not currently the root page.
+- `app/sign-in/[[...sign-in]]/page.tsx` and `app/sign-up/[[...sign-up]]/page.tsx` contain the custom Clerk auth routes.
+- `app/experience/page.tsx`, `app/qualification/page.tsx`, `app/skills/page.tsx`, and `app/projects/page.tsx` route to their matching profile feature pages.
 
 ## Directory Conventions
 
@@ -79,7 +89,7 @@ Clerk environment variables are also required for local auth, though they are no
 
 ## API Pattern
 
-Use `lib/axios/request.ts` for backend calls. It returns `ApiResponse<T>` and normalizes failures to `ApiErrorHandler`.
+Use `lib/axios/request.ts` for backend calls. It returns `ApiResponse<T>`, handles `204` empty responses, and normalizes failures to `ApiErrorHandler`.
 
 Service methods should follow the existing shape:
 
@@ -117,6 +127,8 @@ const createExperience = useApiMutation(ExperienceService.createExperience, {
 
 Current query keys include `experience`, `qualifications`, `project`, and `skills`. Keep keys stable when adding invalidation.
 
+Job tracker uses feature-specific TanStack Query hooks in `features/job-tracker/application/useJobTrackerActions.ts`. Keep new job tracker reads and writes in that application layer instead of moving API calls into presentation components.
+
 ## Forms and Validation
 
 New forms should use:
@@ -153,7 +165,8 @@ Dialog state should live in the owning feature.
 - `project`: CRUD for projects.
 - `skills`: profile skill groups, including technical, personal, and awards.
 - `coverletter`: submits a job description to generate a cover letter and displays the output.
-- `workspace`: owns the main split-pane composition for the root page.
+- `job-tracker`: root application workspace for jobs, statuses, search, pagination, deletion, and document generation.
+- `workspace`: owns the split-pane profile and cover letter composition.
 - `home`: job description form, currently separate from the main page flow.
 
 ## Known Caveats

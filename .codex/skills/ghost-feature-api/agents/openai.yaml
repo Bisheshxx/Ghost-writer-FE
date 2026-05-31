@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ghost Feature API"
+  short_description: "Add Ghost frontend API-backed features from Swagger."
+  default_prompt: "Add a new API-backed feature to the Ghost frontend using openapi/swagger.json and the existing feature structure."
