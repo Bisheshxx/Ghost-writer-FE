@@ -14,9 +14,34 @@ export type JobRow = {
   location: string;
   status: JobStatus;
   link: string;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
-export type GeneratedPayload = Pick<
-  JobRow,
-  "company" | "title" | "description" | "location"
->;
+export type Job = Required<JobRow>;
+
+export type JobsListParams = {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: JobStatus | "";
+};
+
+export type CreateJobPayload = {
+  company: string;
+  title: string;
+  description: string;
+  location: string;
+  link: string;
+  status?: JobStatus;
+};
+
+export type UpdateJobPayload = Partial<CreateJobPayload>;
+
+export type GeneratedPayload = {
+  jobId: string;
+  resumeText: string;
+  coverLetterText: string;
+  model: string;
+  createdAt: string;
+};

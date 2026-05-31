@@ -27,11 +27,14 @@ import {
 
 type JobTrackerTableProps = {
   allSelected: boolean;
+  generatingIds: string[];
   isLoading: boolean;
   rows: JobRow[];
   selectedIds: string[];
   onClearSearch: () => void;
   onCreateEntry: () => void;
+  onDeleteRow: (rowId: string) => void;
+  onGenerateRow: (rowId: string) => void;
   onStatusChange: (rowId: string, status: JobStatus) => void;
   onToggleAll: () => void;
   onToggleRow: (rowId: string) => void;
@@ -39,11 +42,14 @@ type JobTrackerTableProps = {
 
 export default function JobTrackerTable({
   allSelected,
+  generatingIds,
   isLoading,
   rows,
   selectedIds,
   onClearSearch,
   onCreateEntry,
+  onDeleteRow,
+  onGenerateRow,
   onStatusChange,
   onToggleAll,
   onToggleRow,
@@ -79,8 +85,11 @@ export default function JobTrackerTable({
             {rows.map((row) => (
               <JobTrackerTableRow
                 key={row.id}
+                isGenerating={generatingIds.includes(row.id)}
                 isSelected={selectedIds.includes(row.id)}
                 row={row}
+                onDeleteRow={onDeleteRow}
+                onGenerateRow={onGenerateRow}
                 onStatusChange={onStatusChange}
                 onToggleRow={onToggleRow}
               />
@@ -93,13 +102,19 @@ export default function JobTrackerTable({
 }
 
 function JobTrackerTableRow({
+  isGenerating,
   isSelected,
   row,
+  onDeleteRow,
+  onGenerateRow,
   onStatusChange,
   onToggleRow,
 }: {
+  isGenerating: boolean;
   isSelected: boolean;
   row: JobRow;
+  onDeleteRow: (rowId: string) => void;
+  onGenerateRow: (rowId: string) => void;
   onStatusChange: (rowId: string, status: JobStatus) => void;
   onToggleRow: (rowId: string) => void;
 }) {
@@ -115,7 +130,9 @@ function JobTrackerTableRow({
       <TableCell className="px-4 py-4 font-medium">{row.company}</TableCell>
       <TableCell className="px-4 py-4">{row.title}</TableCell>
       <TableCell className="max-w-[360px] px-4 py-4 text-muted-foreground">
-        {row.description}
+        <p className="truncate">
+          {row.description}
+        </p>
       </TableCell>
       <TableCell className="px-4 py-4">{row.location}</TableCell>
       <TableCell className="px-4 py-4">
@@ -159,11 +176,16 @@ function JobTrackerTableRow({
             icon={Trash2}
             label="Delete"
             ariaLabel="Delete generation"
+            onClick={() => onDeleteRow(row.id)}
           />
           <IconTooltipButton
             icon={Play}
-            label="Run generation"
-            iconClassName="size-4 fill-current"
+            label={isGenerating ? "Generating" : "Run generation"}
+            ariaLabel="Run generation"
+            iconClassName={`size-4 fill-current ${
+              isGenerating ? "animate-spin" : ""
+            }`}
+            onClick={() => onGenerateRow(row.id)}
           />
         </div>
       </TableCell>

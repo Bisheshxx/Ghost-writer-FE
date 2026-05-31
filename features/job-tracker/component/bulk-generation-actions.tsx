@@ -1,14 +1,16 @@
-import { LoaderCircle, SquareDashed } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
 type BulkGenerationActionsProps = {
+  isGenerating: boolean;
   selectedCount: number;
   onClearSelection: () => void;
   onGenerate: () => void;
 };
 
 export default function BulkGenerationActions({
+  isGenerating,
   selectedCount,
   onClearSelection,
   onGenerate,
@@ -29,11 +31,16 @@ export default function BulkGenerationActions({
         >
           Clear
         </Button>
-        <Button variant="outline" size="sm" className="gap-2" onClick={onGenerate}>
-          <SquareDashed className="size-4" /> Prepare payload
-        </Button>
-        <Button size="sm" className="gap-2" onClick={onGenerate}>
-          <LoaderCircle className="size-4" /> Generate
+        <Button
+          size="sm"
+          className="gap-2"
+          onClick={onGenerate}
+          disabled={isGenerating}
+        >
+          <LoaderCircle
+            className={`size-4 ${isGenerating ? "animate-spin" : ""}`}
+          />{" "}
+          Generate
         </Button>
       </div>
     </div>

@@ -13,11 +13,14 @@ import JobTrackerTable from "./job-tracker-table";
 
 type JobTrackerViewTabsProps = {
   allSelected: boolean;
+  generatingIds: string[];
   isLoading: boolean;
   rows: JobRow[];
   selectedIds: string[];
   onClearSearch: () => void;
   onCreateEntry: () => void;
+  onDeleteRow: (rowId: string) => void;
+  onGenerateRow: (rowId: string) => void;
   onStatusChange: (rowId: string, status: JobStatus) => void;
   onToggleAll: () => void;
   onToggleRow: (rowId: string) => void;
@@ -25,11 +28,14 @@ type JobTrackerViewTabsProps = {
 
 export default function JobTrackerViewTabs({
   allSelected,
+  generatingIds,
   isLoading,
   rows,
   selectedIds,
   onClearSearch,
   onCreateEntry,
+  onDeleteRow,
+  onGenerateRow,
   onStatusChange,
   onToggleAll,
   onToggleRow,
@@ -52,11 +58,14 @@ export default function JobTrackerViewTabs({
       <TabsContent value="table">
         <JobTrackerTable
           allSelected={allSelected}
+          generatingIds={generatingIds}
           isLoading={isLoading}
           rows={rows}
           selectedIds={selectedIds}
           onClearSearch={onClearSearch}
           onCreateEntry={onCreateEntry}
+          onDeleteRow={onDeleteRow}
+          onGenerateRow={onGenerateRow}
           onStatusChange={onStatusChange}
           onToggleAll={onToggleAll}
           onToggleRow={onToggleRow}

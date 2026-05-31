@@ -1,12 +1,12 @@
 import type { UseFormReturn } from "react-hook-form";
 import {
-  CheckCircle2,
   ClipboardPaste,
   Plus,
   SquarePen,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import LoadingButtonComponent from "@/shared/component/button/LoadingButtonComponent";
 import {
   Card,
   CardDescription,
@@ -32,6 +32,7 @@ import type { JobTrackerEntryFormValues } from "../schema/job-tracker.schema";
 type JobTrackerHeaderProps = {
   canBulkGenerate: boolean;
   form: UseFormReturn<JobTrackerEntryFormValues>;
+  isCreating: boolean;
   isCreateOpen: boolean;
   onBulkGenerate: () => void;
   onCreateEntry: (values: JobTrackerEntryFormValues) => void;
@@ -42,6 +43,7 @@ type JobTrackerHeaderProps = {
 export default function JobTrackerHeader({
   canBulkGenerate,
   form,
+  isCreating,
   isCreateOpen,
   onBulkGenerate,
   onCreateEntry,
@@ -107,6 +109,7 @@ export default function JobTrackerHeader({
                     <Textarea
                       id="description"
                       rows={5}
+                      className="max-h-48 overflow-y-auto"
                       {...form.register("description")}
                     />
                     {errors.description?.message && (
@@ -152,9 +155,10 @@ export default function JobTrackerHeader({
                   </div>
 
                   <DialogFooter>
-                    <Button type="submit" className="gap-2">
-                      <CheckCircle2 className="size-4" /> Create entry
-                    </Button>
+                    <LoadingButtonComponent
+                      isLoading={isCreating}
+                      text="Create entry"
+                    />
                   </DialogFooter>
                 </form>
               </DialogContent>
