@@ -1,36 +1,156 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ghost Writer Frontend
+
+Ghost Writer is a Next.js frontend for tracking job applications, managing profile data, and generating resume and cover letter content from a backend API.
+
+## Stack
+
+- Next.js `16.2.4` with App Router
+- React `19.2.4`
+- TypeScript with strict mode
+- pnpm
+- Tailwind CSS v4
+- shadcn/Radix UI components
+- Clerk authentication
+- TanStack Query for server state
+- Zustand for feature UI state
+- React Hook Form and Zod for forms
+- Axios for backend requests
+- Sonner for toast notifications
+
+## Main Features
+
+- Job tracker at `/`
+  - Search and paginate jobs
+  - Create jobs
+  - Update job status
+  - Delete jobs
+  - Generate resume and cover letter text for one or more jobs
+  - View generated document previews
+- Profile management
+  - `/experience`
+  - `/qualification`
+  - `/skills`
+  - `/projects`
+- Auth pages
+  - `/sign-in`
+  - `/sign-up`
+  - `/sso-callback`
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create a local `.env` file with the required values:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:5001
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/
+NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Run the development server:
 
-## Learn More
+```bash
+pnpm dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open [http://localhost:3000](http://localhost:3000).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Backend API
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The frontend expects the backend origin in `NEXT_PUBLIC_API_URL`. The Axios client appends `/api`, so a service URL such as `v1/jobs` resolves to:
 
-## Deploy on Vercel
+```text
+${NEXT_PUBLIC_API_URL}/api/v1/jobs
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The current Swagger snapshot is stored at:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+openapi/swagger.json
+```
+
+Refresh it from the backend with:
+
+```bash
+pnpm sync:api
+```
+
+By default this fetches:
+
+```text
+http://localhost:5001/api-docs.json
+```
+
+Override the source with:
+
+```bash
+SWAGGER_URL=http://localhost:5001/api-docs.json pnpm sync:api
+```
+
+Use `openapi/swagger.json` as the source of truth for backend endpoints.
+
+## Scripts
+
+```bash
+pnpm dev       # Start the local Next.js dev server
+pnpm build     # Build the production app
+pnpm start     # Start the production app
+pnpm lint      # Run ESLint
+pnpm sync:api  # Refresh openapi/swagger.json from the backend
+```
+
+## Docker
+
+The project includes a production `Dockerfile` that builds the Next.js standalone output.
+
+```bash
+docker build -t ghost-frontend .
+docker run --env-file .env -p 3000:3000 ghost-frontend
+```
+
+## Project Structure
+
+```text
+app/                         App Router routes and root layout
+components/                  Shared app shell and shadcn UI components
+features/<domain>/           Feature-specific UI, forms, schemas, services, stores, and types
+lib/axios/                   Axios client, Clerk token interceptor, and request helper
+lib/toast/                   Toast helpers
+openapi/swagger.json         Synced backend Swagger snapshot
+scripts/sync-swagger.ts      Swagger sync script
+shared/component/            Reusable app-level components
+shared/hooks/                Shared TanStack Query helpers
+shared/providers/            Shared React providers
+shared/types/                Shared API response types
+```
+
+Feature folders generally follow this shape:
+
+```text
+features/<domain>/
+  application/   Feature hooks and mutation/query orchestration
+  component/     Feature UI
+  form/          React Hook Form components
+  schema/        Zod schemas
+  service/       Backend API methods
+  store/         Feature-local UI state
+  types/         Feature TypeScript types
+```
+
+## Development Notes
+
+- Prefer existing shadcn components from `components/ui` before creating new UI primitives.
+- Keep route files in `app/`.
+- Keep feature-specific code in `features/<domain>/`.
+- Use Zod plus React Hook Form for forms.
+- Use feature services for backend calls instead of calling Axios directly in components.
+- Use the synced Swagger file before adding or changing frontend API calls.
+- Run `pnpm lint` before pushing; run `pnpm build` when changes affect routes, shared types, providers, auth, or API contracts.
