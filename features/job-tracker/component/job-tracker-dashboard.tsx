@@ -26,7 +26,6 @@ import type {
 import BulkGenerationActions from "./bulk-generation-actions";
 import GeneratedPayloadPreview from "./generated-payload-preview";
 import JobTrackerFilters from "./job-tracker-filters";
-import JobTrackerHeader from "./job-tracker-header";
 import JobTrackerViewTabs from "./job-tracker-view-tabs";
 
 const PAGE_LIMIT = 10;
@@ -40,6 +39,7 @@ export default function JobTrackerDashboard() {
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
+  const [statusFilter, setStatusFilter] = useState<JobStatus | "">("");
   const debouncedQuery = useDebounce(query, 300);
 
   const listParams = useMemo(
@@ -47,8 +47,9 @@ export default function JobTrackerDashboard() {
       limit: PAGE_LIMIT,
       page,
       search: debouncedQuery.trim(),
+      status: statusFilter,
     }),
-    [page, debouncedQuery],
+    [page, debouncedQuery, statusFilter],
   );
   const jobsQuery = useJobs(listParams);
   const jobRows = jobsQuery.data;
@@ -181,24 +182,25 @@ export default function JobTrackerDashboard() {
     setPage(1);
   };
 
+  const handleStatusFilterChange = (status: JobStatus | "") => {
+    setStatusFilter(status);
+    setPage(1);
+  };
+
   return (
     <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-4 py-4 md:px-6">
-      <section className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-        <JobTrackerHeader
-          canBulkGenerate={selectedRows.length > 0}
-          form={form}
-          isCreating={createJobMutation.isPending}
-          isCreateOpen={isCreateOpen}
-          onBulkGenerate={() =>
-            handleGenerateJobs(selectedRows.map(({ id }) => id))
-          }
-          onCreateEntry={handleCreateEntry}
-          onCreateOpenChange={setIsCreateOpen}
-          onPasteJobLink={handlePasteJobLink}
-        />
-
-        <JobTrackerFilters query={query} onQueryChange={handleQueryChange} />
-      </section>
+      <JobTrackerFilters
+        form={form}
+        isCreating={createJobMutation.isPending}
+        isCreateOpen={isCreateOpen}
+        query={query}
+        statusFilter={statusFilter}
+        onCreateEntry={handleCreateEntry}
+        onCreateOpenChange={setIsCreateOpen}
+        onPasteJobLink={handlePasteJobLink}
+        onQueryChange={handleQueryChange}
+        onStatusFilterChange={handleStatusFilterChange}
+      />
 
       <BulkGenerationActions
         isGenerating={generatingIds.length > 0}

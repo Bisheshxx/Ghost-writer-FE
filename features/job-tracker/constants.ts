@@ -19,15 +19,3 @@ export const JOB_TABLE_HEADERS = [
   "Job Link",
   "Actions",
 ] as const;
-
-export const JOB_SUMMARY_ITEMS = [
-  "Drafts for generation",
-  "Ready to send",
-  "Applied",
-] as const;
-
-export const JOB_FILTER_CHIPS = [
-  "Remote",
-  "Ready for generation",
-  "Needs resume refresh",
-] as const;
