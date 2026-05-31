@@ -34,5 +34,6 @@ export const useApiQuery = <
   return {
     ...response,
     data: response.data?.data,
+    meta: response.data?.meta,
   };
 };

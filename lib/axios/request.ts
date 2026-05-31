@@ -35,6 +35,14 @@ export async function request<
       },
     });
 
+    if (response.status === 204) {
+      return {
+        success: true,
+        data: undefined as TResponse,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
     const apiResponse = response?.data as ApiResponse<TResponse> | undefined;
     const isSuccess = apiResponse?.success ?? true;
     if (!isSuccess && apiResponse) {

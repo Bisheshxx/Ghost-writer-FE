@@ -1,7 +1,6 @@
 import {
   ApiResponse,
   IError,
-  IValidationError,
 } from "../../shared/types/global.types";
 
 /**
@@ -11,7 +10,7 @@ import {
 export class ApiErrorHandler extends Error {
   public response: ApiResponse<null>;
   public error?: IError;
-  public validationErrors?: IValidationError[];
+  public validationErrors?: unknown[];
 
   constructor(response: ApiResponse<null>) {
     let errorMessage = response.message || "An error occurred";
@@ -55,6 +54,8 @@ export class ApiErrorHandler extends Error {
 
     if (this.validationErrors) {
       this.validationErrors.forEach((validationError) => {
+        if (!isFieldValidationError(validationError)) return;
+
         const fieldName = validationError.field.name;
         if (!errorsByField[fieldName]) {
           errorsByField[fieldName] = [];
@@ -69,7 +70,23 @@ export class ApiErrorHandler extends Error {
   /**
    * Get all validation errors as a flat array
    */
-  public getAllValidationErrors(): IValidationError[] {
+  public getAllValidationErrors(): unknown[] {
     return this.validationErrors || [];
   }
+}
+
+function isFieldValidationError(
+  validationError: unknown,
+): validationError is { field: { name: string }; message: string } {
+  if (!validationError || typeof validationError !== "object") return false;
+
+  const error = validationError as {
+    field?: { name?: unknown };
+    message?: unknown;
+  };
+
+  return (
+    typeof error.field?.name === "string" &&
+    typeof error.message === "string"
+  );
 }
