@@ -14,7 +14,7 @@ export const JobTrackerService = {
     request<Job[]>({
       method: "GET",
       url: "v1/jobs",
-      params,
+      // params,
     }),
 
   createJob: async (job: CreateJobPayload) =>

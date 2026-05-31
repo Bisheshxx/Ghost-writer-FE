@@ -19,10 +19,7 @@ import {
   jobTrackerEntrySchema,
   type JobTrackerEntryFormValues,
 } from "../schema/job-tracker.schema";
-import type {
-  GeneratedPayload,
-  JobStatus,
-} from "../types/job-tracker";
+import type { GeneratedPayload, JobStatus } from "../types/job-tracker";
 import BulkGenerationActions from "./bulk-generation-actions";
 import GeneratedPayloadPreview from "./generated-payload-preview";
 import JobTrackerFilters from "./job-tracker-filters";
@@ -83,9 +80,7 @@ export default function JobTrackerDashboard() {
   const deleteJobMutation = useDeleteJob({
     onSuccess: (_data, deletedRowId) => {
       showSuccess("Job deleted");
-      setSelected((current) =>
-        current.filter((id) => id !== deletedRowId),
-      );
+      setSelected((current) => current.filter((id) => id !== deletedRowId));
     },
     onError: (error) => showError(getErrorMessage(error)),
   });
@@ -189,6 +184,9 @@ export default function JobTrackerDashboard() {
 
   return (
     <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-4 py-4 md:px-6">
+      <div className="flex justify-between items-center shrink-0">
+        <h2 className="text-2xl font-bold text-gray-900">Cover letter</h2>
+      </div>
       <JobTrackerFilters
         form={form}
         isCreating={createJobMutation.isPending}
@@ -259,5 +257,7 @@ export default function JobTrackerDashboard() {
 }
 
 function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "An unexpected error occurred";
+  return error instanceof Error
+    ? error.message
+    : "An unexpected error occurred";
 }
