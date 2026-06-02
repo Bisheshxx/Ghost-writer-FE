@@ -9,11 +9,12 @@ import {
   GraduationCap,
   LayoutDashboard,
   Sparkles,
+  UserRound,
 } from "lucide-react";
 
-import { ClerkLoaded, UserButton } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "@/components/theme-toggle";
+import UserProfileMenu from "@/components/user-profile-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -33,6 +34,7 @@ const navigation = [
   { href: "/qualification", label: "Qualification", icon: GraduationCap },
   { href: "/skills", label: "Skills", icon: BarChart3 },
   { href: "/projects", label: "Projects", icon: FolderKanban },
+  { href: "/account", label: "Account", icon: UserRound },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -79,9 +81,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <SidebarFooter className="border-t border-sidebar-border p-3">
             <div className="flex flex-col items-center justify-center gap-2">
               <ThemeToggle />
-              <ClerkLoaded>
-                <UserButton />
-              </ClerkLoaded>
+              <UserProfileMenu />
             </div>
           </SidebarFooter>
         </Sidebar>
@@ -112,6 +112,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               );
             })}
             <ThemeToggle className="ml-1" />
+            <UserProfileMenu side="top" className="ml-1" />
           </div>
         </nav>
       </SidebarProvider>
