@@ -125,9 +125,9 @@ function TechnicalSkillsComponent({
       technicalSkills.length === 0) ||
     technicalSkills === undefined;
   return (
-    <Card className="w-full shrink-0 shadow-sm border border-gray-200 bg-white hover:shadow-md transition-shadow mb-6">
+    <Card className="w-full shrink-0 shadow-sm border border-border bg-background hover:shadow-md transition-shadow mb-6">
       <CardHeader className="flex items-center justify-between">
-        <CardTitle>Technical Skills</CardTitle>
+        <CardTitle className="text-chart-1">Technical Skills</CardTitle>
         <div>
           <Button size="sm" variant="outline" onClick={openEditTechnical}>
             {isAdd ? "Add" : "Edit"}
@@ -144,12 +144,12 @@ function TechnicalSkillsComponent({
               className="flex items-center justify-between gap-4"
             >
               <div>
-                <p className="font-semibold">{t.category}</p>
+                <p className="font-semibold text-chart-1">{t.category}</p>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {t.technologies.map((tech) => (
                     <span
                       key={tech}
-                      className="rounded-full border px-2 py-1 text-xs bg-gray-50"
+                      className="rounded-full border border-border bg-muted px-2 py-1 text-xs text-chart-1"
                     >
                       {tech}
                     </span>
@@ -180,9 +180,9 @@ function PersonalSkillsComponent({
     personalSkills === undefined;
 
   return (
-    <Card className="w-full shrink-0 shadow-sm border border-gray-200 bg-white hover:shadow-md transition-shadow mb-6">
+    <Card className="w-full shrink-0 shadow-sm border border-border bg-background hover:shadow-md transition-shadow mb-6">
       <CardHeader className="flex items-center justify-between">
-        <CardTitle>Personal Skills</CardTitle>
+        <CardTitle className="text-chart-1">Personal Skills</CardTitle>
         <div>
           <Button size="sm" variant="outline" onClick={openEditPersonal}>
             {isAdd ? "Add" : "Edit"}
@@ -197,7 +197,7 @@ function PersonalSkillsComponent({
             personalSkills?.map((p) => (
               <span
                 key={p}
-                className="rounded-full border px-2 py-1 text-xs bg-gray-50"
+                className="rounded-full border border-border bg-muted px-2 py-1 text-xs text-chart-1"
               >
                 {p}
               </span>
@@ -219,9 +219,9 @@ function AwardsComponent({ awards }: { awards: Award[] }) {
     (awards && Array.isArray(awards) && awards.length === 0) ||
     awards === undefined;
   return (
-    <Card className="w-full shrink-0 shadow-sm border border-gray-200 bg-white hover:shadow-md transition-shadow mb-6">
+    <Card className="w-full shrink-0 shadow-sm border border-border bg-background hover:shadow-md transition-shadow mb-6">
       <CardHeader className="flex items-center justify-between">
-        <CardTitle>Awards</CardTitle>
+        <CardTitle className="text-chart-1">Awards</CardTitle>
         <div>
           <Button size="sm" variant="outline" onClick={openEditAwards}>
             {isAdd ? "Add" : "Edit"}
@@ -233,12 +233,12 @@ function AwardsComponent({ awards }: { awards: Award[] }) {
           <NothingToDisplay />
         ) : (
           awards?.map((a) => (
-            <div key={a._id} className="border rounded p-3">
-              <p className="font-semibold">{a.title}</p>
-              <p className="text-xs text-gray-600">
+            <div key={a._id} className="border border-border rounded p-3">
+              <p className="font-semibold text-chart-1">{a.title}</p>
+              <p className="text-xs text-muted-foreground">
                 {a.issuer} • {toUTCDate(a.issuedDate)}
               </p>
-              <p className="mt-2 text-sm">{a.details}</p>
+              <p className="mt-2 text-sm text-chart-1">{a.details}</p>
             </div>
           ))
         )}

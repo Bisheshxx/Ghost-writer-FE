@@ -230,11 +230,11 @@ const ProjectCardComponent = ({ project }: { project: IProject }) => {
   };
 
   return (
-    <Card className="w-full shrink-0 shadow-sm border border-gray-200 bg-white hover:shadow-md transition-shadow mb-6">
+    <Card className="w-full shrink-0 shadow-sm border border-border bg-background hover:shadow-md transition-shadow mb-6">
       <CardHeader className="pb-2 md:pb-4 px-2.5 sm:px-4 md:px-6">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-xs sm:text-sm md:text-lg lg:text-2xl font-semibold text-gray-900 wrap-break-word">
+            <CardTitle className="text-xs sm:text-sm md:text-lg lg:text-2xl font-semibold text-chart-1 wrap-break-word">
               {project.projectTitle}
             </CardTitle>
           </div>
@@ -266,23 +266,23 @@ const ProjectCardComponent = ({ project }: { project: IProject }) => {
       </CardHeader>
       <CardContent className="space-y-3 px-2.5 sm:px-4 md:px-6 pb-5">
         <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-tight sm:tracking-wide mb-1.5 sm:mb-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-tight sm:tracking-wide mb-1.5 sm:mb-2">
             Details
           </p>
-          <p className="text-gray-700 text-xs md:text-sm leading-relaxed whitespace-pre-line">
+          <p className="text-chart-1 text-xs md:text-sm leading-relaxed whitespace-pre-line">
             {project.details}
           </p>
         </div>
 
         <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-tight sm:tracking-wide mb-1.5 sm:mb-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-tight sm:tracking-wide mb-1.5 sm:mb-2">
             Stack
           </p>
           <div className="flex flex-wrap gap-2">
             {project.stack.map((tech) => (
               <span
                 key={tech}
-                className="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-700"
+                className="rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium text-chart-1"
               >
                 {tech}
               </span>
