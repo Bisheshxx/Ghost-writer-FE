@@ -17,7 +17,7 @@ type JobTrackerViewTabsProps = {
   onDeleteRow: (row: JobRow) => void;
   onEditRow: (row: JobRow) => void;
   onGenerateRow: (rowId: string) => void;
-  onStatusChange: (rowId: string, status: JobStatus) => void;
+  onStatusChange: (rowId: string, status: JobStatus) => Promise<void>;
   onToggleAll: () => void;
   onToggleRow: (rowId: string) => void;
 };
@@ -38,21 +38,21 @@ export default function JobTrackerViewTabs({
   onToggleRow,
 }: JobTrackerViewTabsProps) {
   return (
-    <Tabs defaultValue="table" className="gap-3">
-      <div className="flex justify-end">
-        <TabsList>
-          <TabsTrigger value="table">
+    <Tabs defaultValue="table" className="w-full gap-3">
+      <div className="flex justify-start sm:justify-end">
+        <TabsList className="grid w-full grid-cols-2 sm:w-auto">
+          <TabsTrigger value="table" className="gap-2">
             <Table2 className="size-4" />
             Table
           </TabsTrigger>
-          <TabsTrigger value="kanban">
+          <TabsTrigger value="kanban" className="gap-2">
             <Columns3 className="size-4" />
             Kanban
           </TabsTrigger>
         </TabsList>
       </div>
 
-      <TabsContent value="table">
+      <TabsContent value="table" className="min-w-0">
         <JobTrackerTable
           allSelected={allSelected}
           generatingIds={generatingIds}
@@ -70,14 +70,8 @@ export default function JobTrackerViewTabs({
         />
       </TabsContent>
 
-      <TabsContent value="kanban">
-        <JobTrackerKanban
-          isLoading={isLoading}
-          rows={rows}
-          onClearSearch={onClearSearch}
-          onCreateEntry={onCreateEntry}
-          onStatusChange={onStatusChange}
-        />
+      <TabsContent value="kanban" className="min-w-0">
+        <JobTrackerKanban onStatusChange={onStatusChange} />
       </TabsContent>
     </Tabs>
   );

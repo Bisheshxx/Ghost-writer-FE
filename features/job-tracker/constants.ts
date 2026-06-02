@@ -15,7 +15,6 @@ export const JOB_TABLE_HEADERS = [
   "Location",
   "Status",
   "Generation",
-  "Job Link",
   "Actions",
 ] as const;
 

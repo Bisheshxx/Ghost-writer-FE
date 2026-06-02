@@ -3,22 +3,14 @@ import { ArrowUpDown, Plus, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import CustomDialog from "@/shared/component/dialog/CustomDialog";
 
-import { JOB_STATUS_OPTIONS, JOB_TRACKER_DIALOGS } from "../constants";
+import { JOB_TRACKER_DIALOGS } from "../constants";
 import type { JobTrackerEntryFormValues } from "../schema/job-tracker.schema";
 import { useJobTrackerUiStore } from "../store/useJobTrackerUiStore";
 import type { JobSortOrder, JobStatus } from "../types/job-tracker";
+import JobStatusSelect from "./job-status-select";
 import JobTrackerEntryForm from "./job-tracker-entry-form";
-
-const ALL_STATUSES_VALUE = "all";
 
 type JobTrackerFiltersProps = {
   form: UseFormReturn<JobTrackerEntryFormValues>;
@@ -61,29 +53,14 @@ export default function JobTrackerFilters({
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center lg:shrink-0">
-        <Select
-          value={statusFilter || ALL_STATUSES_VALUE}
-          onValueChange={(value) =>
-            onStatusFilterChange(
-              value === ALL_STATUSES_VALUE ? "" : (value as JobStatus),
-            )
-          }
-        >
-          <SelectTrigger
-            aria-label="Filter by status"
-            className="h-10 w-full sm:w-44"
-          >
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL_STATUSES_VALUE}>All statuses</SelectItem>
-            {JOB_STATUS_OPTIONS.map((status) => (
-              <SelectItem key={status} value={status}>
-                {status}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <JobStatusSelect
+          value={statusFilter}
+          onValueChange={onStatusFilterChange}
+          includeAllOption
+          placeholder="All statuses"
+          ariaLabel="Filter by status"
+          className="h-10 w-full sm:w-44"
+        />
 
         <Button
           type="button"

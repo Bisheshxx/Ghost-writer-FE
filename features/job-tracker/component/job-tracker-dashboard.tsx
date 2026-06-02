@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { showError, showSuccess } from "@/lib/toast/toast.lib";
 import CustomDialog from "@/shared/component/dialog/CustomDialog";
 import { useDebounce } from "@/shared/hooks/useDebounce";
@@ -14,6 +15,7 @@ import {
   useCreateJob,
   useDeleteJob,
   useGenerateJobDocuments,
+  useJob,
   useJobs,
   useUpdateJob,
   useUpdateJobStatus,
@@ -162,8 +164,8 @@ export default function JobTrackerDashboard() {
     });
   };
 
-  const handleStatusChange = (rowId: string, status: JobStatus) => {
-    updateStatusMutation.mutate({ id: rowId, status });
+  const handleStatusChange = async (rowId: string, status: JobStatus) => {
+    await updateStatusMutation.mutateAsync({ id: rowId, status });
   };
 
   const handleDeleteRow = (row: JobRow) => {
@@ -291,6 +293,9 @@ export default function JobTrackerDashboard() {
 function JobTrackerEditDialog() {
   const { openDialogName, selectedJob, setOpenDialogName, setSelectedJob } =
     useJobTrackerUiStore();
+  const isOpen = openDialogName === JOB_TRACKER_DIALOGS.EDIT;
+  const jobQuery = useJob(selectedJob?.id, isOpen);
+  const job = jobQuery.data;
 
   const form = useForm<JobTrackerEntryFormValues>({
     resolver: zodResolver(jobTrackerEntrySchema),
@@ -304,16 +309,16 @@ function JobTrackerEditDialog() {
   });
 
   useEffect(() => {
-    if (!selectedJob) return;
+    if (!job) return;
 
     form.reset({
-      company: selectedJob.company,
-      title: selectedJob.title,
-      description: selectedJob.description,
-      location: selectedJob.location,
-      link: selectedJob.link,
+      company: job.company,
+      title: job.title,
+      description: job.description,
+      location: job.location,
+      link: job.link,
     });
-  }, [form, selectedJob]);
+  }, [form, job]);
 
   const updateJobMutation = useUpdateJob({
     onSuccess: () => {
@@ -343,13 +348,44 @@ function JobTrackerEditDialog() {
       openDialogName={openDialogName}
       onOpenDialogChange={setOpenDialogName}
     >
-      <JobTrackerEntryForm
-        form={form}
-        isSubmitting={updateJobMutation.isPending}
-        submitText="Update entry"
-        onSubmit={handleUpdateEntry}
-      />
+      {jobQuery.isLoading || jobQuery.isFetching ? (
+        <JobTrackerEditFormSkeleton />
+      ) : jobQuery.isError ? (
+        <div className="grid gap-4">
+          <p className="text-sm text-destructive">
+            {getErrorMessage(jobQuery.error)}
+          </p>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setOpenDialogName(null)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </div>
+      ) : (
+        <JobTrackerEntryForm
+          form={form}
+          isSubmitting={updateJobMutation.isPending}
+          submitText="Update entry"
+          onSubmit={handleUpdateEntry}
+        />
+      )}
     </CustomDialog>
+  );
+}
+
+function JobTrackerEditFormSkeleton() {
+  return (
+    <div className="grid gap-4">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <div key={index} className="grid gap-2">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className={index === 2 ? "h-28 w-full" : "h-10 w-full"} />
+        </div>
+      ))}
+      <DialogFooter>
+        <Skeleton className="h-10 w-32" />
+      </DialogFooter>
+    </div>
   );
 }
 
