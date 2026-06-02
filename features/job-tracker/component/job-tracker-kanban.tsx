@@ -35,6 +35,19 @@ type OptimisticJobMove = {
   status: JobStatus;
 };
 
+type OptimisticColumnStateParams = {
+  baseCount: number;
+  maxRows: number;
+  moves: OptimisticJobMove[];
+  rows: JobRow[];
+  status: JobStatus;
+};
+
+type OptimisticColumnState = {
+  count: number;
+  rows: JobRow[];
+};
+
 export default function JobTrackerKanban({
   onStatusChange,
 }: JobTrackerKanbanProps) {
@@ -140,17 +153,13 @@ function KanbanStatusColumn({
     limit: KANBAN_COLUMN_LIMIT,
     status,
   });
-  const columnCount = getOptimisticColumnCount(
-    jobsQuery.meta?.total ?? jobsQuery.rows.length,
+  const columnState = getOptimisticColumnState({
+    baseCount: jobsQuery.meta?.total ?? jobsQuery.rows.length,
+    maxRows: KANBAN_COLUMN_LIMIT,
+    moves: optimisticMoves,
+    rows: jobsQuery.rows,
     status,
-    optimisticMoves,
-  );
-  const statusRows = getOptimisticStatusRows(
-    jobsQuery.rows,
-    status,
-    optimisticMoves,
-    columnCount,
-  );
+  });
 
   const handleScroll = (event: UIEvent<HTMLDivElement>) => {
     const { clientHeight, scrollHeight, scrollTop } = event.currentTarget;
@@ -175,7 +184,7 @@ function KanbanStatusColumn({
       <div className="mb-3 flex items-center justify-between gap-2">
         <h3 className="text-sm font-semibold">{status}</h3>
         <span className="rounded-full border bg-background/70 px-2 py-0.5 text-xs text-muted-foreground">
-          {columnCount}
+          {columnState.count}
         </span>
       </div>
 
@@ -191,9 +200,9 @@ function KanbanStatusColumn({
           <div className="flex min-h-24 items-center justify-center rounded-lg border border-dashed bg-background/40 px-3 text-center text-xs text-muted-foreground">
             Could not load jobs
           </div>
-        ) : statusRows.length > 0 ? (
+        ) : columnState.rows.length > 0 ? (
           <>
-            {statusRows.map((row) => (
+            {columnState.rows.map((row) => (
               <KanbanJobCard
                 key={row.id}
                 isDragging={draggingRowId === row.id}
@@ -228,12 +237,13 @@ function mergeOptimisticMove(
   ];
 }
 
-function getOptimisticStatusRows(
-  rows: JobRow[],
-  status: JobStatus,
-  moves: OptimisticJobMove[],
-  maxRows: number,
-) {
+function getOptimisticColumnState({
+  baseCount,
+  maxRows,
+  moves,
+  rows,
+  status,
+}: OptimisticColumnStateParams): OptimisticColumnState {
   const moveByRowId = new Map(moves.map((move) => [move.row.id, move]));
   const rowIds = new Set(rows.map((row) => row.id));
 
@@ -253,13 +263,37 @@ function getOptimisticStatusRows(
     })
     .filter((row) => row.status === status);
 
-  // Refetches can briefly combine stale pages with the optimistic insert. Keep
-  // one row per job, sort consistently, and do not render more rows than the
-  // metadata-backed optimistic count says the column should contain.
-  return sortKanbanRows(dedupeRows([...movedIntoColumn, ...visibleRows])).slice(
-    0,
-    maxRows,
+  // Keep moved-in optimistic cards above sorted query rows so a drop appears
+  // at the top immediately, even before the server updates timestamps/order.
+  const optimisticRows = dedupeRows(movedIntoColumn);
+  const optimisticRowIds = new Set(optimisticRows.map((row) => row.id));
+  const sortedRows = sortKanbanRows(
+    dedupeRows(visibleRows).filter((row) => !optimisticRowIds.has(row.id)),
   );
+
+  // Count adjustments must stop once refetched rows already reflect the move,
+  // otherwise the badge briefly double-applies the optimistic delta.
+  const count = Math.max(
+    0,
+    moves.reduce((total, move) => {
+      const rowInColumn = rowIds.has(move.row.id);
+
+      if (move.row.status === status && move.status !== status) {
+        return rowInColumn ? total - 1 : total;
+      }
+
+      if (move.row.status !== status && move.status === status) {
+        return rowInColumn ? total : total + 1;
+      }
+
+      return total;
+    }, baseCount),
+  );
+
+  return {
+    count,
+    rows: [...optimisticRows, ...sortedRows].slice(0, maxRows),
+  };
 }
 
 function dedupeRows(rows: JobRow[]) {
@@ -290,27 +324,6 @@ function getSortableTime(row: JobRow) {
   const timestamp = row.updatedAt ?? row.createdAt;
 
   return timestamp ? Date.parse(timestamp) || 0 : 0;
-}
-
-function getOptimisticColumnCount(
-  count: number,
-  status: JobStatus,
-  moves: OptimisticJobMove[],
-) {
-  return Math.max(
-    0,
-    moves.reduce((total, move) => {
-      if (move.row.status === status && move.status !== status) {
-        return total - 1;
-      }
-
-      if (move.row.status !== status && move.status === status) {
-        return total + 1;
-      }
-
-      return total;
-    }, count),
-  );
 }
 
 function KanbanJobCard({
