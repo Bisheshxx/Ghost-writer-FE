@@ -3,23 +3,16 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { isClerkAPIResponseError } from "@clerk/nextjs/errors";
 import { useSignIn } from "@clerk/nextjs/legacy";
 import { ArrowRight, Lock, Mail } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getClerkErrorMessage } from "@/lib/clerk/error";
 
 const DEFAULT_ERROR = "Unable to sign in. Check your details and try again.";
 
-function getClerkError(error: unknown) {
-  if (isClerkAPIResponseError(error)) {
-    return error.errors[0]?.longMessage ?? error.errors[0]?.message ?? DEFAULT_ERROR;
-  }
-
-  return DEFAULT_ERROR;
-}
 
 export default function CustomSignIn() {
   const router = useRouter();
@@ -55,7 +48,7 @@ export default function CustomSignIn() {
 
       setError("This sign-in needs another verification step.");
     } catch (err) {
-      setError(getClerkError(err));
+      setError(getClerkErrorMessage(err, DEFAULT_ERROR));
     } finally {
       setIsSubmitting(false);
     }
@@ -76,7 +69,7 @@ export default function CustomSignIn() {
         strategy: "oauth_google",
       });
     } catch (err) {
-      setError(getClerkError(err));
+      setError(getClerkErrorMessage(err, DEFAULT_ERROR));
       setIsGoogleLoading(false);
     }
   };

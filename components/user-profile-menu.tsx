@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut, Mail, UserRound } from "lucide-react";
+import { LogOut, UserRound } from "lucide-react";
 import { useClerk, useUser } from "@clerk/nextjs";
 
 import { cn } from "@/lib/utils";
@@ -16,23 +16,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getUserDisplayName, getUserInitials } from "@/lib/user/profile";
 
 type UserProfileMenuProps = {
   align?: "start" | "center" | "end";
   className?: string;
   side?: "top" | "right" | "bottom" | "left";
 };
-
-function getInitials(name?: string | null, email?: string | null) {
-  const source = name?.trim() || email?.split("@")[0] || "User";
-  const parts = source.split(/\s+/).filter(Boolean);
-
-  if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase();
-  }
-
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
 
 export default function UserProfileMenu({
   align = "end",
@@ -51,8 +41,14 @@ export default function UserProfileMenu({
   }
 
   const email = user.primaryEmailAddress?.emailAddress;
-  const displayName = user.fullName || user.username || email || "Account";
-  const initials = getInitials(displayName, email);
+  const displayName = getUserDisplayName({
+    email,
+    name: user.fullName,
+  });
+  const initials = getUserInitials({
+    email,
+    name: user.fullName,
+  });
 
   return (
     <DropdownMenu>

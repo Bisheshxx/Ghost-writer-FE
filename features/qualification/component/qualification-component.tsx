@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { formatMonthYearDate } from "@/lib/date";
 import { IQualification } from "../types/qualification.d";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -228,13 +229,6 @@ const QualificationCardComponent = ({
   const { setOpenDialogName, setSelectedQualification } =
     useQualificationUiStore();
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-    });
-  };
-
   const handleEditClick = () => {
     setSelectedQualification(qualification);
     setOpenDialogName(QUALIFICATION_DIALOGS.EDIT);
@@ -293,9 +287,9 @@ const QualificationCardComponent = ({
               Duration
             </p>
             <p className="font-semibold text-chart-1 text-xs sm:text-sm">
-              {formatDate(qualification.startDate)} -{" "}
+              {formatMonthYearDate(qualification.startDate)} -{" "}
               {qualification.endDate
-                ? formatDate(qualification.endDate)
+                ? formatMonthYearDate(qualification.endDate)
                 : "Present"}
             </p>
           </div>

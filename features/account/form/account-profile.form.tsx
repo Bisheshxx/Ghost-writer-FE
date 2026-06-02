@@ -2,10 +2,10 @@
 
 import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, type Control, type FieldPath, useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
-import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { accountProfileSchema } from "../schema/account.schema";
 import type { AccountProfileFormData } from "../types/account.types";
@@ -26,67 +26,67 @@ export default function AccountProfileForm({
     defaultValues,
   });
 
+  const handleSave = async (data: AccountProfileFormData) => {
+    await onSave(data);
+    reset(data);
+  };
+
   useEffect(() => {
     reset(defaultValues);
   }, [defaultValues, reset]);
 
   return (
-    <form onSubmit={handleSubmit(onSave)} className="space-y-5">
+    <form onSubmit={handleSubmit(handleSave)} className="space-y-5">
       <div className="grid gap-4 md:grid-cols-2">
-        <Controller
+        <AccountProfileField
           control={control}
           name="firstName"
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid || undefined}>
-              <FieldLabel htmlFor="firstName">First name</FieldLabel>
-              <Input
-                {...field}
-                id="firstName"
-                placeholder="Your first name"
-                aria-invalid={fieldState.invalid || undefined}
-              />
-              <FieldError errors={[fieldState.error]} />
-            </Field>
-          )}
+          label="First name"
+          placeholder="Your first name"
         />
-
-        <Controller
+        <AccountProfileField
           control={control}
           name="lastName"
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid || undefined}>
-              <FieldLabel htmlFor="lastName">Last name</FieldLabel>
-              <Input
-                {...field}
-                id="lastName"
-                placeholder="Your last name"
-                aria-invalid={fieldState.invalid || undefined}
-              />
-              <FieldError errors={[fieldState.error]} />
-            </Field>
-          )}
+          label="Last name"
+          placeholder="Your last name"
         />
+        <AccountProfileField
+          control={control}
+          name="phoneNumber"
+          label="Phone number"
+          placeholder="Your phone number"
+          type="tel"
+        />
+        <AccountProfileField
+          control={control}
+          name="location"
+          label="Location"
+          placeholder="City, country"
+        />
+        <AccountProfileField
+          control={control}
+          name="linkedinUrl"
+          label="LinkedIn URL"
+          placeholder="https://linkedin.com/in/username"
+          type="url"
+        />
+        <AccountProfileField
+          control={control}
+          name="githubUrl"
+          label="GitHub URL"
+          placeholder="https://github.com/username"
+          type="url"
+        />
+        <div className="md:col-span-2">
+          <AccountProfileField
+            control={control}
+            name="portfolioUrl"
+            label="Portfolio URL"
+            placeholder="https://your-portfolio.com"
+            type="url"
+          />
+        </div>
       </div>
-
-      <Controller
-        control={control}
-        name="username"
-        render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid || undefined}>
-            <FieldLabel htmlFor="username">Username</FieldLabel>
-            <Input
-              {...field}
-              id="username"
-              placeholder="username"
-              aria-invalid={fieldState.invalid || undefined}
-            />
-            <FieldDescription>
-              This is stored in Clerk and can be used for account display inside Ghost Writer.
-            </FieldDescription>
-            <FieldError errors={[fieldState.error]} />
-          </Field>
-        )}
-      />
 
       <div className="flex justify-end">
         <Button type="submit" disabled={isSaving}>
@@ -94,5 +94,39 @@ export default function AccountProfileForm({
         </Button>
       </div>
     </form>
+  );
+}
+
+function AccountProfileField({
+  control,
+  label,
+  name,
+  placeholder,
+  type = "text",
+}: {
+  control: Control<AccountProfileFormData>;
+  label: string;
+  name: FieldPath<AccountProfileFormData>;
+  placeholder: string;
+  type?: React.HTMLInputTypeAttribute;
+}) {
+  return (
+    <Controller
+      control={control}
+      name={name}
+      render={({ field, fieldState }) => (
+        <Field data-invalid={fieldState.invalid || undefined}>
+          <FieldLabel htmlFor={name}>{label}</FieldLabel>
+          <Input
+            {...field}
+            id={name}
+            placeholder={placeholder}
+            type={type}
+            aria-invalid={fieldState.invalid || undefined}
+          />
+          <FieldError errors={[fieldState.error]} />
+        </Field>
+      )}
+    />
   );
 }

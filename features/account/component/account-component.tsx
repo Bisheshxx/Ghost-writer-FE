@@ -14,49 +14,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getClerkErrorMessage } from "@/lib/clerk/error";
+import { formatMediumDate } from "@/lib/date";
 import { showError, showSuccess } from "@/lib/toast/toast.lib";
 import { cn } from "@/lib/utils";
+import { getUserDisplayName, getUserInitials } from "@/lib/user/profile";
 import AccountProfileForm from "../form/account-profile.form";
 import type { AccountProfileFormData } from "../types/account.types";
-
-function getInitials(name?: string | null, email?: string | null) {
-  const source = name?.trim() || email?.split("@")[0] || "User";
-  const parts = source.split(/\s+/).filter(Boolean);
-
-  if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase();
-  }
-
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
-function getErrorMessage(error: unknown) {
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "errors" in error &&
-    Array.isArray((error as { errors?: Array<{ message?: string }> }).errors)
-  ) {
-    return (
-      (error as { errors: Array<{ message?: string }> }).errors[0]?.message ||
-      "Something went wrong"
-    );
-  }
-
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return "Something went wrong";
-}
-
-function formatDate(date?: Date | null) {
-  if (!date) return "Not available";
-
-  return new Intl.DateTimeFormat("en", {
-    dateStyle: "medium",
-  }).format(date);
-}
 
 export default function AccountComponent() {
   const { signOut } = useClerk();
@@ -65,14 +29,15 @@ export default function AccountComponent() {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  const defaultValues = useMemo<AccountProfileFormData>(
-    () => ({
+  const defaultValues = useMemo<AccountProfileFormData>(() => {
+    const profileMetadata = getAccountProfileMetadata(user?.unsafeMetadata);
+
+    return {
       firstName: user?.firstName ?? "",
       lastName: user?.lastName ?? "",
-      username: user?.username ?? "",
-    }),
-    [user?.firstName, user?.lastName, user?.username],
-  );
+      ...profileMetadata,
+    };
+  }, [user?.firstName, user?.lastName, user?.unsafeMetadata]);
 
   if (!isLoaded) {
     return <AccountSkeleton />;
@@ -83,22 +48,45 @@ export default function AccountComponent() {
   }
 
   const email = user.primaryEmailAddress?.emailAddress;
-  const displayName = user.fullName || user.username || email || "Account";
-  const initials = getInitials(displayName, email);
+  const displayName = getUserDisplayName({
+    email,
+    name: user.fullName,
+  });
+  const initials = getUserInitials({
+    email,
+    name: user.fullName,
+  });
 
   const handleSaveProfile = async (data: AccountProfileFormData) => {
     setIsSavingProfile(true);
 
     try {
+      const existingUnsafeMetadata = isRecord(user.unsafeMetadata)
+        ? user.unsafeMetadata
+        : {};
+      const existingProfileMetadata = isRecord(existingUnsafeMetadata.profile)
+        ? existingUnsafeMetadata.profile
+        : {};
+
       await user.update({
         firstName: data.firstName || null,
         lastName: data.lastName || null,
-        username: data.username || null,
+        unsafeMetadata: {
+          ...existingUnsafeMetadata,
+          profile: {
+            ...existingProfileMetadata,
+            ...getAccountProfileMetadataUpdate(data),
+          },
+        },
       });
       await user.reload();
       showSuccess("Account profile updated");
     } catch (error) {
-      showError(getErrorMessage(error));
+      showError(
+        getClerkErrorMessage(error, "Something went wrong", {
+          includeNativeError: true,
+        }),
+      );
     } finally {
       setIsSavingProfile(false);
     }
@@ -117,7 +105,11 @@ export default function AccountComponent() {
       await user.reload();
       showSuccess("Profile photo updated");
     } catch (error) {
-      showError(getErrorMessage(error));
+      showError(
+        getClerkErrorMessage(error, "Something went wrong", {
+          includeNativeError: true,
+        }),
+      );
     } finally {
       setIsUploadingImage(false);
       event.target.value = "";
@@ -125,7 +117,7 @@ export default function AccountComponent() {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-4 py-4 md:px-6">
+    <div className="mx-auto flex w-full md:max-w-300 flex-col gap-6 px-4 py-4 md:px-6">
       <div className="flex flex-col gap-1">
         <p className="text-sm text-muted-foreground">Account</p>
         <h1 className="text-2xl font-semibold tracking-tight">
@@ -205,7 +197,7 @@ export default function AccountComponent() {
               <AccountStatusItem
                 icon={CalendarDays}
                 label="Last sign in"
-                value={formatDate(user.lastSignInAt)}
+                value={formatMediumDate(user.lastSignInAt)}
               />
             </CardContent>
           </Card>
@@ -229,11 +221,11 @@ export default function AccountComponent() {
               <div className="space-y-2 text-sm">
                 <SummaryRow
                   label="Created"
-                  value={formatDate(user.createdAt)}
+                  value={formatMediumDate(user.createdAt)}
                 />
                 <SummaryRow
                   label="Updated"
-                  value={formatDate(user.updatedAt)}
+                  value={formatMediumDate(user.updatedAt)}
                 />
               </div>
             </CardContent>
@@ -261,6 +253,45 @@ export default function AccountComponent() {
       </div>
     </div>
   );
+}
+
+type AccountProfileMetadata = Pick<
+  AccountProfileFormData,
+  "phoneNumber" | "location" | "linkedinUrl" | "githubUrl" | "portfolioUrl"
+>;
+
+function getAccountProfileMetadata(metadata: unknown): AccountProfileMetadata {
+  const profile = isRecord(metadata) && isRecord(metadata.profile)
+    ? metadata.profile
+    : {};
+
+  return {
+    phoneNumber: getStringMetadataValue(profile.phoneNumber),
+    location: getStringMetadataValue(profile.location),
+    linkedinUrl: getStringMetadataValue(profile.linkedinUrl),
+    githubUrl: getStringMetadataValue(profile.githubUrl),
+    portfolioUrl: getStringMetadataValue(profile.portfolioUrl),
+  };
+}
+
+function getAccountProfileMetadataUpdate(
+  data: AccountProfileFormData,
+): AccountProfileMetadata {
+  return {
+    phoneNumber: data.phoneNumber,
+    location: data.location,
+    linkedinUrl: data.linkedinUrl,
+    githubUrl: data.githubUrl,
+    portfolioUrl: data.portfolioUrl,
+  };
+}
+
+function getStringMetadataValue(value: unknown) {
+  return typeof value === "string" ? value : "";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function AccountStatusItem({

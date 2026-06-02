@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { formatMonthYearDate } from "@/lib/date";
 import { ExperienceFormData, IExperience } from "../types/experience-types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -221,12 +222,6 @@ const ExperienceCardComponent = ({
   experience: IExperience;
 }) => {
   const { setOpenDialogName, setSelectedExperience } = useExperienceUiStore();
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-    });
-  };
   const handleEditClick = () => {
     setSelectedExperience(experience);
     setOpenDialogName(EXPERIENCE_DIALOGS.EDIT);
@@ -285,8 +280,10 @@ const ExperienceCardComponent = ({
               Duration
             </p>
             <p className="font-semibold text-chart-1 text-xs sm:text-sm">
-              {formatDate(experience.startDate)} -{" "}
-              {experience.endDate ? formatDate(experience.endDate) : "Present"}
+              {formatMonthYearDate(experience.startDate)} -{" "}
+              {experience.endDate
+                ? formatMonthYearDate(experience.endDate)
+                : "Present"}
             </p>
           </div>
         </div>
