@@ -102,12 +102,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   key={item.href}
                   href={item.href}
                   aria-current={active ? "page" : undefined}
+                  aria-label={item.label}
                   className={cn(
                     "flex min-w-0 flex-1 items-center justify-center gap-1 rounded-xl p-2 transition-colors",
                     active && "bg-primary text-primary-foreground shadow-sm",
                   )}
                 >
                   <Icon className="size-4" aria-hidden="true" />
+                  <span className="sr-only">{item.label}</span>
                 </Link>
               );
             })}
