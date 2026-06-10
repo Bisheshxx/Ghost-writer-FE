@@ -108,8 +108,6 @@ export default function JobTrackerKanban({
             ),
           );
         });
-    } else if (rowId) {
-      void onStatusChange(rowId, nextStatus);
     }
 
     setDraggingRow(null);
