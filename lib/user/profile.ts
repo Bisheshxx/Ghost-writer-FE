@@ -17,11 +17,6 @@ export function getUserInitials({
   fallback = "Account",
   name,
 }: UserDisplayInput) {
-export function getUserInitials({
-  email,
-  fallback = "Account",
-  name,
-}: UserDisplayInput) {
   const source = name?.trim() || email?.split("@")[0] || fallback;
   const parts = source.split(/\s+/).filter(Boolean);
 
@@ -34,5 +29,4 @@ export function getUserInitials({
   }
 
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
 }

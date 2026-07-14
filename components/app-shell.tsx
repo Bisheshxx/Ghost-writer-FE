@@ -8,7 +8,6 @@ import {
   FolderKanban,
   GraduationCap,
   LayoutDashboard,
-  Sparkles,
   UserRound,
 } from "lucide-react";
 
@@ -51,7 +50,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 className="flex size-7 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground transition-transform hover:scale-[1.02]"
                 aria-label="Ghost Writer home"
               >
-                <Sparkles className="size-4" />
+                {/* <Sparkles className="size-4" /> */}
               </Link>
             </SidebarHeader>
             <SidebarContent className="p-2 flex flex-col justify-center items-center">

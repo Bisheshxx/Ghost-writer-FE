@@ -76,7 +76,7 @@ export default function PersonalListForm({ personalSkills, id }: Props) {
           {(skills || personalSkills || []).map((skill: string) => (
             <span
               key={skill}
-              className="inline-flex items-center gap-2 bg-gray-50 border rounded-full px-2 py-1 text-xs"
+              className="rounded-full border border-border bg-muted px-2 py-1 text-xs text-chart-1"
             >
               <span>{skill}</span>
               <button

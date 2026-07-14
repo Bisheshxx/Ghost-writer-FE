@@ -13,7 +13,6 @@ import { getClerkErrorMessage } from "@/lib/clerk/error";
 
 const DEFAULT_ERROR = "Unable to create your account. Try again.";
 
-
 type SignUpStep = "details" | "verification";
 
 export default function CustomSignUp() {
@@ -234,6 +233,8 @@ export default function CustomSignUp() {
                 {error}
               </p>
             ) : null}
+
+            <div id="clerk-captcha" data-cl-size="flexible" />
 
             <Button
               className="h-10 w-full justify-center gap-2"
