@@ -8,10 +8,12 @@ import {
   FolderKanban,
   GraduationCap,
   LayoutDashboard,
-  Sparkles,
+  UserRound,
 } from "lucide-react";
 
-import { ClerkLoaded, UserButton } from "@clerk/nextjs";
+import { cn } from "@/lib/utils";
+import ThemeToggle from "@/components/theme-toggle";
+import UserProfileMenu from "@/components/user-profile-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -31,6 +33,7 @@ const navigation = [
   { href: "/qualification", label: "Qualification", icon: GraduationCap },
   { href: "/skills", label: "Skills", icon: BarChart3 },
   { href: "/projects", label: "Projects", icon: FolderKanban },
+  { href: "/account", label: "Account", icon: UserRound },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -44,10 +47,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <SidebarHeader className="border-b border-sidebar-border p-3">
               <Link
                 href="/"
-                className="flex size-9 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground transition-transform hover:scale-[1.02]"
+                className="flex size-7 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground transition-transform hover:scale-[1.02]"
                 aria-label="Ghost Writer home"
               >
-                <Sparkles className="size-4" />
+                {/* <Sparkles className="size-4" /> */}
               </Link>
             </SidebarHeader>
             <SidebarContent className="p-2 flex flex-col justify-center items-center">
@@ -75,16 +78,44 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             </SidebarContent>
           </div>
           <SidebarFooter className="border-t border-sidebar-border p-3">
-            <ClerkLoaded>
-              <div className="flex items-center justify-center">
-                <UserButton />
-              </div>
-            </ClerkLoaded>
+            <div className="flex flex-col items-center justify-center gap-2">
+              <ThemeToggle />
+              <UserProfileMenu />
+            </div>
           </SidebarFooter>
         </Sidebar>
-        <SidebarInset className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
+        <SidebarInset className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 pb-24 md:pb-0">
           {children}
         </SidebarInset>
+        <nav
+          aria-label="Mobile navigation"
+          className="fixed inset-x-3 bottom-3 z-50 md:hidden"
+        >
+          <div className="mx-auto flex max-w-sm items-center justify-between rounded-xl border border-border/80 bg-background/95 p-1.5 shadow-lg shadow-foreground/10 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              const active = pathname === item.href;
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  aria-label={item.label}
+                  className={cn(
+                    "flex min-w-0 flex-1 items-center justify-center gap-1 rounded-xl p-2 transition-colors",
+                    active && "bg-primary text-primary-foreground shadow-sm",
+                  )}
+                >
+                  <Icon className="size-4" aria-hidden="true" />
+                  <span className="sr-only">{item.label}</span>
+                </Link>
+              );
+            })}
+            <ThemeToggle className="ml-1" />
+            <UserProfileMenu side="top" className="ml-1" />
+          </div>
+        </nav>
       </SidebarProvider>
     </TooltipProvider>
   );

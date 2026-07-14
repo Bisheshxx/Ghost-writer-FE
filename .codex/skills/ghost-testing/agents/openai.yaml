@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ghost Testing"
+  short_description: "Add Ghost frontend tests or test setup."
+  default_prompt: "Add focused tests for the Ghost frontend using the smallest suitable test setup and existing feature patterns."
+

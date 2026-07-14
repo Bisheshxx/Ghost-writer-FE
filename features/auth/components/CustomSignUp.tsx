@@ -3,23 +3,15 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { isClerkAPIResponseError } from "@clerk/nextjs/errors";
 import { useSignUp } from "@clerk/nextjs/legacy";
 import { ArrowRight, Briefcase, Lock, Mail, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getClerkErrorMessage } from "@/lib/clerk/error";
 
 const DEFAULT_ERROR = "Unable to create your account. Try again.";
-
-function getClerkError(error: unknown) {
-  if (isClerkAPIResponseError(error)) {
-    return error.errors[0]?.longMessage ?? error.errors[0]?.message ?? DEFAULT_ERROR;
-  }
-
-  return DEFAULT_ERROR;
-}
 
 type SignUpStep = "details" | "verification";
 
@@ -80,7 +72,7 @@ export default function CustomSignUp() {
 
       setError("This sign-up needs another verification step.");
     } catch (err) {
-      setError(getClerkError(err));
+      setError(getClerkErrorMessage(err, DEFAULT_ERROR));
     } finally {
       setIsSubmitting(false);
     }
@@ -108,7 +100,7 @@ export default function CustomSignUp() {
 
       setError("The email code was accepted, but sign-up is not complete yet.");
     } catch (err) {
-      setError(getClerkError(err));
+      setError(getClerkErrorMessage(err, DEFAULT_ERROR));
     } finally {
       setIsSubmitting(false);
     }
@@ -132,7 +124,7 @@ export default function CustomSignUp() {
           : undefined,
       });
     } catch (err) {
-      setError(getClerkError(err));
+      setError(getClerkErrorMessage(err, DEFAULT_ERROR));
       setIsGoogleLoading(false);
     }
   };
@@ -241,6 +233,8 @@ export default function CustomSignUp() {
                 {error}
               </p>
             ) : null}
+
+            <div id="clerk-captcha" data-cl-size="flexible" />
 
             <Button
               className="h-10 w-full justify-center gap-2"

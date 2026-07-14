@@ -1,29 +1,43 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
+import { DialogFooter } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { showError, showSuccess } from "@/lib/toast/toast.lib";
+import CustomDialog from "@/shared/component/dialog/CustomDialog";
 import { useDebounce } from "@/shared/hooks/useDebounce";
 
 import {
   useCreateJob,
   useDeleteJob,
   useGenerateJobDocuments,
+  useJob,
   useJobs,
+  useUpdateJob,
   useUpdateJobStatus,
 } from "../application/useJobTrackerActions";
+import { JOB_TRACKER_DIALOGS } from "../constants";
 import {
   jobTrackerEntrySchema,
   type JobTrackerEntryFormValues,
 } from "../schema/job-tracker.schema";
-import type { GeneratedPayload, JobStatus } from "../types/job-tracker";
+import { useJobTrackerUiStore } from "../store/useJobTrackerUiStore";
+import type {
+  GeneratedPayload,
+  JobRow,
+  JobSortOrder,
+  JobStatus,
+} from "../types/job-tracker";
 import BulkGenerationActions from "./bulk-generation-actions";
 import GeneratedPayloadPreview from "./generated-payload-preview";
+import JobTrackerEntryForm from "./job-tracker-entry-form";
 import JobTrackerFilters from "./job-tracker-filters";
 import JobTrackerViewTabs from "./job-tracker-view-tabs";
+import PageTitle from "@/components/page-title";
 
 const PAGE_LIMIT = 10;
 
@@ -32,11 +46,12 @@ export default function JobTrackerDashboard() {
     GeneratedPayload[]
   >([]);
   const [generatingIds, setGeneratingIds] = useState<string[]>([]);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const { setOpenDialogName, setSelectedJob } = useJobTrackerUiStore();
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState<JobStatus | "">("");
+  const [sortOrder, setSortOrder] = useState<JobSortOrder>("desc");
   const debouncedQuery = useDebounce(query, 300);
 
   const listParams = useMemo(
@@ -45,8 +60,9 @@ export default function JobTrackerDashboard() {
       page,
       search: debouncedQuery.trim(),
       status: statusFilter,
+      sortOrder,
     }),
-    [page, debouncedQuery, statusFilter],
+    [page, debouncedQuery, statusFilter, sortOrder],
   );
   const jobsQuery = useJobs(listParams);
   const jobRows = jobsQuery.data;
@@ -66,11 +82,16 @@ export default function JobTrackerDashboard() {
   const createJobMutation = useCreateJob({
     onSuccess: () => {
       showSuccess("Job created");
-      setIsCreateOpen(false);
+      setOpenDialogName(null);
       form.reset();
     },
     onError: (error) => showError(getErrorMessage(error)),
   });
+
+  const handleEditRow = (row: JobRow) => {
+    setSelectedJob(row);
+    setOpenDialogName(JOB_TRACKER_DIALOGS.EDIT);
+  };
 
   const updateStatusMutation = useUpdateJobStatus({
     onSuccess: () => showSuccess("Job status updated"),
@@ -81,6 +102,8 @@ export default function JobTrackerDashboard() {
     onSuccess: (_data, deletedRowId) => {
       showSuccess("Job deleted");
       setSelected((current) => current.filter((id) => id !== deletedRowId));
+      setSelectedJob(null);
+      setOpenDialogName(null);
     },
     onError: (error) => showError(getErrorMessage(error)),
   });
@@ -141,12 +164,13 @@ export default function JobTrackerDashboard() {
     });
   };
 
-  const handleStatusChange = (rowId: string, status: JobStatus) => {
-    updateStatusMutation.mutate({ id: rowId, status });
+  const handleStatusChange = async (rowId: string, status: JobStatus) => {
+    await updateStatusMutation.mutateAsync({ id: rowId, status });
   };
 
-  const handleDeleteRow = (rowId: string) => {
-    deleteJobMutation.mutate(rowId);
+  const handleDeleteRow = (row: JobRow) => {
+    setSelectedJob(row);
+    setOpenDialogName(JOB_TRACKER_DIALOGS.DELETE);
   };
 
   const handleToggleAll = () => {
@@ -182,21 +206,24 @@ export default function JobTrackerDashboard() {
     setPage(1);
   };
 
+  const handleSortOrderChange = (order: JobSortOrder) => {
+    setSortOrder(order);
+    setPage(1);
+  };
+
   return (
     <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-4 py-4 md:px-6">
-      <div className="flex justify-between items-center shrink-0">
-        <h2 className="text-2xl font-bold text-gray-900">Cover letter</h2>
-      </div>
+      <PageTitle title="Dashboard" />
       <JobTrackerFilters
         form={form}
         isCreating={createJobMutation.isPending}
-        isCreateOpen={isCreateOpen}
         query={query}
+        sortOrder={sortOrder}
         statusFilter={statusFilter}
         onCreateEntry={handleCreateEntry}
-        onCreateOpenChange={setIsCreateOpen}
         onPasteJobLink={handlePasteJobLink}
         onQueryChange={handleQueryChange}
+        onSortOrderChange={handleSortOrderChange}
         onStatusFilterChange={handleStatusFilterChange}
       />
 
@@ -216,8 +243,9 @@ export default function JobTrackerDashboard() {
         rows={jobRows}
         selectedIds={selected}
         onClearSearch={() => setQuery("")}
-        onCreateEntry={() => setIsCreateOpen(true)}
+        onCreateEntry={() => setOpenDialogName(JOB_TRACKER_DIALOGS.CREATE)}
         onDeleteRow={handleDeleteRow}
+        onEditRow={handleEditRow}
         onGenerateRow={(rowId) => handleGenerateJobs([rowId])}
         onStatusChange={handleStatusChange}
         onToggleAll={handleToggleAll}
@@ -252,7 +280,159 @@ export default function JobTrackerDashboard() {
           </div>
         </div>
       )}
+
+      <JobTrackerEditDialog />
+      <JobTrackerDeleteDialog
+        isDeleting={deleteJobMutation.isPending}
+        onConfirmDelete={(rowId) => deleteJobMutation.mutate(rowId)}
+      />
     </div>
+  );
+}
+
+function JobTrackerEditDialog() {
+  const { openDialogName, selectedJob, setOpenDialogName, setSelectedJob } =
+    useJobTrackerUiStore();
+  const isOpen = openDialogName === JOB_TRACKER_DIALOGS.EDIT;
+  const jobQuery = useJob(selectedJob?.id, isOpen);
+  const job = jobQuery.data;
+
+  const form = useForm<JobTrackerEntryFormValues>({
+    resolver: zodResolver(jobTrackerEntrySchema),
+    defaultValues: {
+      company: "",
+      title: "",
+      description: "",
+      location: "",
+      link: "",
+    },
+  });
+
+  useEffect(() => {
+    if (!job) return;
+
+    form.reset({
+      company: job.company,
+      title: job.title,
+      description: job.description,
+      location: job.location,
+      link: job.link,
+    });
+  }, [form, job]);
+
+  const updateJobMutation = useUpdateJob({
+    onSuccess: () => {
+      showSuccess("Job updated");
+      setOpenDialogName(null);
+      setSelectedJob(null);
+      form.reset();
+    },
+    onError: (error) => showError(getErrorMessage(error)),
+  });
+
+  if (!selectedJob) return null;
+
+  const handleUpdateEntry = (values: JobTrackerEntryFormValues) => {
+    updateJobMutation.mutate({
+      id: selectedJob.id,
+      data: values,
+    });
+  };
+
+  return (
+    <CustomDialog
+      width="sm:max-w-xl"
+      title="Edit generation entry"
+      description="Update the company, job title, description, location, and job link used for generation."
+      dialogName={JOB_TRACKER_DIALOGS.EDIT}
+      openDialogName={openDialogName}
+      onOpenDialogChange={setOpenDialogName}
+    >
+      {jobQuery.isLoading || jobQuery.isFetching ? (
+        <JobTrackerEditFormSkeleton />
+      ) : jobQuery.isError ? (
+        <div className="grid gap-4">
+          <p className="text-sm text-destructive">
+            {getErrorMessage(jobQuery.error)}
+          </p>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setOpenDialogName(null)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </div>
+      ) : (
+        <JobTrackerEntryForm
+          form={form}
+          isSubmitting={updateJobMutation.isPending}
+          submitText="Update entry"
+          onSubmit={handleUpdateEntry}
+        />
+      )}
+    </CustomDialog>
+  );
+}
+
+function JobTrackerEditFormSkeleton() {
+  return (
+    <div className="grid gap-4">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <div key={index} className="grid gap-2">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className={index === 2 ? "h-28 w-full" : "h-10 w-full"} />
+        </div>
+      ))}
+      <DialogFooter>
+        <Skeleton className="h-10 w-32" />
+      </DialogFooter>
+    </div>
+  );
+}
+
+function JobTrackerDeleteDialog({
+  isDeleting,
+  onConfirmDelete,
+}: {
+  isDeleting: boolean;
+  onConfirmDelete: (rowId: string) => void;
+}) {
+  const { openDialogName, selectedJob, setOpenDialogName } =
+    useJobTrackerUiStore();
+
+  if (!selectedJob) return null;
+
+  const handleCancel = () => {
+    setOpenDialogName(null);
+  };
+
+  return (
+    <CustomDialog
+      width="md:max-w-sm"
+      title="Delete Job?"
+      description={`Are you sure you want to delete "${selectedJob.title}" at "${selectedJob.company}"? This action cannot be undone.`}
+      dialogName={JOB_TRACKER_DIALOGS.DELETE}
+      openDialogName={openDialogName}
+      onOpenDialogChange={setOpenDialogName}
+    >
+      <DialogFooter className="gap-2">
+        <Button
+          variant="outline"
+          onClick={handleCancel}
+          className="text-sm"
+          disabled={isDeleting}
+        >
+          Cancel
+        </Button>
+        <Button
+          variant="outline"
+          className="text-sm text-red-600 border-red-300 hover:bg-red-50"
+          onClick={() => onConfirmDelete(selectedJob.id)}
+          disabled={isDeleting}
+        >
+          {isDeleting ? "Deleting" : "Delete"}
+        </Button>
+      </DialogFooter>
+    </CustomDialog>
   );
 }
 

@@ -16,6 +16,9 @@
       "name": "Health"
     },
     {
+      "name": "Profile"
+    },
+    {
       "name": "Jobs"
     },
     {
@@ -71,6 +74,115 @@
           }
         }
       },
+      "UserProfileInput": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "example": "Jane"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "jane@example.com"
+          },
+          "location": {
+            "type": "string",
+            "example": "Auckland, NZ"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+64 21 000 0000"
+          },
+          "linkedIn": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://www.linkedin.com/in/janedoe"
+          },
+          "github": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://github.com/janedoe"
+          },
+          "portfolioLink": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://janedoe.dev"
+          }
+        }
+      },
+      "UserProfile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "65f000000000000000000001"
+          },
+          "clerkId": {
+            "type": "string",
+            "example": "user_123"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "Jane"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "jane@example.com"
+          },
+          "location": {
+            "type": "string",
+            "example": "Auckland, NZ"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+64 21 000 0000"
+          },
+          "linkedIn": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://www.linkedin.com/in/janedoe"
+          },
+          "github": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://github.com/janedoe"
+          },
+          "portfolioLink": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://janedoe.dev"
+          },
+          "isProfileComplete": {
+            "type": "boolean",
+            "example": true
+          },
+          "missingFields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": []
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "JobStatus": {
         "type": "string",
         "enum": [
@@ -101,6 +213,14 @@
             "type": "string",
             "example": "Build APIs"
           },
+          "coverLetter": {
+            "type": "string",
+            "example": "Dear hiring team..."
+          },
+          "resume": {
+            "type": "string",
+            "example": "Professional Summary..."
+          },
           "location": {
             "type": "string",
             "example": "Remote"
@@ -111,6 +231,50 @@
           },
           "status": {
             "$ref": "#/components/schemas/JobStatus"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "JobListItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "65f000000000000000000001"
+          },
+          "company": {
+            "type": "string",
+            "example": "Acme"
+          },
+          "title": {
+            "type": "string",
+            "example": "Backend Engineer"
+          },
+          "location": {
+            "type": "string",
+            "example": "Remote"
+          },
+          "link": {
+            "type": "string",
+            "example": "https://example.com/jobs/backend-engineer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/JobStatus"
+          },
+          "hasCoverLetter": {
+            "type": "boolean",
+            "example": true
+          },
+          "hasResume": {
+            "type": "boolean",
+            "example": false
           },
           "createdAt": {
             "type": "string",
@@ -440,6 +604,160 @@
         }
       }
     },
+    "/api/v1/profile": {
+      "get": {
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Get authenticated user's profile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/UserProfile"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2026-05-23T00:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Create or complete authenticated user's profile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserProfileInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created or completed user profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/UserProfile"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2026-05-23T00:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Update authenticated user's profile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserProfileInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated user profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/UserProfile"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2026-05-23T00:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
     "/api/v1/jobs": {
       "get": {
         "tags": [
@@ -481,6 +799,18 @@
             "schema": {
               "$ref": "#/components/schemas/JobStatus"
             }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            }
           }
         ],
         "responses": {
@@ -498,7 +828,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/Job"
+                        "$ref": "#/components/schemas/JobListItem"
                       }
                     },
                     "meta": {
@@ -583,6 +913,97 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/status": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "List authenticated user's jobs by status",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/JobStatus"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated jobs filtered by status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/JobListItem"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "page": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "totalPages": {
+                          "type": "integer"
+                        },
+                        "hasNextPage": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2026-05-23T00:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
