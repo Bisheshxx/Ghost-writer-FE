@@ -4,17 +4,36 @@ import type {
   CreateJobPayload,
   GeneratedPayload,
   Job,
+  JobsByStatusParams,
+  JobListItem,
   JobsListParams,
   UpdateJobPayload,
   JobStatus,
 } from "../types/job-tracker";
 
+const getJobsListParams = (params: JobsListParams) => {
+  const { status, sortOrder, ...rest } = params;
+
+  return {
+    ...rest,
+    ...(status ? { status } : {}),
+    ...(sortOrder ? { sortOrder } : {}),
+  };
+};
+
 export const JobTrackerService = {
   getJobs: async (params: JobsListParams = {}) =>
-    request<Job[]>({
+    request<JobListItem[]>({
       method: "GET",
       url: "v1/jobs",
-      // params,
+      params: getJobsListParams(params),
+    }),
+
+  getJobsByStatus: async (params: JobsByStatusParams) =>
+    request<JobListItem[]>({
+      method: "GET",
+      url: "v1/jobs/status",
+      params,
     }),
 
   createJob: async (job: CreateJobPayload) =>

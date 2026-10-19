@@ -15,6 +15,7 @@ import NothingToDisplay from "@/shared/component/NothingToDisplay";
 import Loading from "@/app/loading";
 import { toUTCDate } from "@/lib/date";
 import { useSkills } from "../application/useSkillsActions";
+import PageTitle from "@/components/page-title";
 
 export default function SkillsComponent() {
   const { data: skills, isSuccess, isLoading } = useSkills();
@@ -27,9 +28,7 @@ export default function SkillsComponent() {
 
   return (
     <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-4 py-4 md:px-6">
-      <div className="flex justify-between items-center mb-6 shrink-0">
-        <h2 className="text-2xl font-bold">Skills</h2>
-      </div>
+      <PageTitle title="Skill" />
 
       <div className="flex-1 min-h-0 overflow-y-auto pr-2 flex flex-col space-y-6">
         {isLoading ? (
@@ -126,9 +125,9 @@ function TechnicalSkillsComponent({
       technicalSkills.length === 0) ||
     technicalSkills === undefined;
   return (
-    <Card className="w-full shrink-0 shadow-sm border border-gray-200 bg-white hover:shadow-md transition-shadow mb-6">
+    <Card className="w-full shrink-0 shadow-sm border border-border bg-background hover:shadow-md transition-shadow mb-6">
       <CardHeader className="flex items-center justify-between">
-        <CardTitle>Technical Skills</CardTitle>
+        <CardTitle className="text-chart-1">Technical Skills</CardTitle>
         <div>
           <Button size="sm" variant="outline" onClick={openEditTechnical}>
             {isAdd ? "Add" : "Edit"}
@@ -145,12 +144,12 @@ function TechnicalSkillsComponent({
               className="flex items-center justify-between gap-4"
             >
               <div>
-                <p className="font-semibold">{t.category}</p>
+                <p className="font-semibold text-chart-1">{t.category}</p>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {t.technologies.map((tech) => (
                     <span
                       key={tech}
-                      className="rounded-full border px-2 py-1 text-xs bg-gray-50"
+                      className="rounded-full border border-border bg-muted px-2 py-1 text-xs text-chart-1"
                     >
                       {tech}
                     </span>
@@ -181,9 +180,9 @@ function PersonalSkillsComponent({
     personalSkills === undefined;
 
   return (
-    <Card className="w-full shrink-0 shadow-sm border border-gray-200 bg-white hover:shadow-md transition-shadow mb-6">
+    <Card className="w-full shrink-0 shadow-sm border border-border bg-background hover:shadow-md transition-shadow mb-6">
       <CardHeader className="flex items-center justify-between">
-        <CardTitle>Personal Skills</CardTitle>
+        <CardTitle className="text-chart-1">Personal Skills</CardTitle>
         <div>
           <Button size="sm" variant="outline" onClick={openEditPersonal}>
             {isAdd ? "Add" : "Edit"}
@@ -198,7 +197,7 @@ function PersonalSkillsComponent({
             personalSkills?.map((p) => (
               <span
                 key={p}
-                className="rounded-full border px-2 py-1 text-xs bg-gray-50"
+                className="rounded-full border border-border bg-muted px-2 py-1 text-xs text-chart-1"
               >
                 {p}
               </span>
@@ -220,9 +219,9 @@ function AwardsComponent({ awards }: { awards: Award[] }) {
     (awards && Array.isArray(awards) && awards.length === 0) ||
     awards === undefined;
   return (
-    <Card className="w-full shrink-0 shadow-sm border border-gray-200 bg-white hover:shadow-md transition-shadow mb-6">
+    <Card className="w-full shrink-0 shadow-sm border border-border bg-background hover:shadow-md transition-shadow mb-6">
       <CardHeader className="flex items-center justify-between">
-        <CardTitle>Awards</CardTitle>
+        <CardTitle className="text-chart-1">Awards</CardTitle>
         <div>
           <Button size="sm" variant="outline" onClick={openEditAwards}>
             {isAdd ? "Add" : "Edit"}
@@ -234,12 +233,12 @@ function AwardsComponent({ awards }: { awards: Award[] }) {
           <NothingToDisplay />
         ) : (
           awards?.map((a) => (
-            <div key={a._id} className="border rounded p-3">
-              <p className="font-semibold">{a.title}</p>
-              <p className="text-xs text-gray-600">
+            <div key={a._id} className="border border-border rounded p-3">
+              <p className="font-semibold text-chart-1">{a.title}</p>
+              <p className="text-xs text-muted-foreground">
                 {a.issuer} • {toUTCDate(a.issuedDate)}
               </p>
-              <p className="mt-2 text-sm">{a.details}</p>
+              <p className="mt-2 text-sm text-chart-1">{a.details}</p>
             </div>
           ))
         )}

@@ -17,13 +17,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { JOB_STATUS_OPTIONS, JOB_TABLE_HEADERS } from "../constants";
 import type { JobRow, JobStatus } from "../types/job-tracker";
 import IconTooltipButton from "./icon-tooltip-button";
+import JobStatusSelect from "./job-status-select";
 import {
   JobTrackerEmptyState,
   JobTrackerLoadingState,
 } from "./job-tracker-states";
+
+type StatusChangeHandler = (
+  rowId: string,
+  status: JobStatus,
+) => void | Promise<void>;
 
 type JobTrackerTableProps = {
   allSelected: boolean;
@@ -33,9 +38,10 @@ type JobTrackerTableProps = {
   selectedIds: string[];
   onClearSearch: () => void;
   onCreateEntry: () => void;
-  onDeleteRow: (rowId: string) => void;
+  onDeleteRow: (row: JobRow) => void;
+  onEditRow: (row: JobRow) => void;
   onGenerateRow: (rowId: string) => void;
-  onStatusChange: (rowId: string, status: JobStatus) => void;
+  onStatusChange: StatusChangeHandler;
   onToggleAll: () => void;
   onToggleRow: (rowId: string) => void;
 };
@@ -49,6 +55,7 @@ export default function JobTrackerTable({
   onClearSearch,
   onCreateEntry,
   onDeleteRow,
+  onEditRow,
   onGenerateRow,
   onStatusChange,
   onToggleAll,
@@ -64,38 +71,75 @@ export default function JobTrackerTable({
           onCreateEntry={onCreateEntry}
         />
       ) : (
-        <Table className="min-w-[1300px]">
-          <TableHeader className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
-            <TableRow>
-              <TableHead className="px-4 py-3">
-                <input
-                  type="checkbox"
-                  checked={allSelected}
-                  onChange={onToggleAll}
-                />
-              </TableHead>
-              {JOB_TABLE_HEADERS.map((header) => (
-                <TableHead key={header} className="px-4 py-3 font-medium">
-                  {header}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        <>
+          <div className="hidden md:block">
+            <Table className="w-full table-fixed">
+              <TableHeader className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <TableRow>
+                  <TableHead className="w-11 px-3 py-3">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={onToggleAll}
+                    />
+                  </TableHead>
+                  <TableHead className="px-3 py-3 font-medium xl:hidden">
+                    Job
+                  </TableHead>
+                  <TableHead className="hidden px-3 py-3 font-medium xl:table-cell">
+                    Company
+                  </TableHead>
+                  <TableHead className="hidden px-3 py-3 font-medium xl:table-cell">
+                    Job Title
+                  </TableHead>
+                  <TableHead className="hidden px-3 py-3 font-medium xl:table-cell">
+                    Location
+                  </TableHead>
+                  <TableHead className="w-36 px-3 py-3 font-medium lg:w-40">
+                    Status
+                  </TableHead>
+                  <TableHead className="w-24 px-3 py-3 font-medium">
+                    Generation
+                  </TableHead>
+                  <TableHead className="w-32 px-3 py-3 font-medium">
+                    Actions
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((row) => (
+                  <JobTrackerTableRow
+                    key={row.id}
+                    isGenerating={generatingIds.includes(row.id)}
+                    isSelected={selectedIds.includes(row.id)}
+                    row={row}
+                    onDeleteRow={onDeleteRow}
+                    onEditRow={onEditRow}
+                    onGenerateRow={onGenerateRow}
+                    onStatusChange={onStatusChange}
+                    onToggleRow={onToggleRow}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="grid gap-3 p-3 md:hidden">
             {rows.map((row) => (
-              <JobTrackerTableRow
+              <JobTrackerMobileCard
                 key={row.id}
                 isGenerating={generatingIds.includes(row.id)}
                 isSelected={selectedIds.includes(row.id)}
                 row={row}
                 onDeleteRow={onDeleteRow}
+                onEditRow={onEditRow}
                 onGenerateRow={onGenerateRow}
                 onStatusChange={onStatusChange}
                 onToggleRow={onToggleRow}
               />
             ))}
-          </TableBody>
-        </Table>
+          </div>
+        </>
       )}
     </div>
   );
@@ -106,6 +150,7 @@ function JobTrackerTableRow({
   isSelected,
   row,
   onDeleteRow,
+  onEditRow,
   onGenerateRow,
   onStatusChange,
   onToggleRow,
@@ -113,9 +158,10 @@ function JobTrackerTableRow({
   isGenerating: boolean;
   isSelected: boolean;
   row: JobRow;
-  onDeleteRow: (rowId: string) => void;
+  onDeleteRow: (row: JobRow) => void;
+  onEditRow: (row: JobRow) => void;
   onGenerateRow: (rowId: string) => void;
-  onStatusChange: (rowId: string, status: JobStatus) => void;
+  onStatusChange: StatusChangeHandler;
   onToggleRow: (rowId: string) => void;
 }) {
   return (
@@ -127,90 +173,196 @@ function JobTrackerTableRow({
           onChange={() => onToggleRow(row.id)}
         />
       </TableCell>
-      <TableCell className="px-4 py-4 font-medium">{row.company}</TableCell>
-      <TableCell className="px-4 py-4">{row.title}</TableCell>
-      <TableCell className="max-w-[360px] px-4 py-4 text-muted-foreground">
-        <p className="truncate">
-          {row.description}
-        </p>
+      <TableCell className="px-3 py-4 xl:hidden">
+        <JobSummary row={row} />
       </TableCell>
-      <TableCell className="px-4 py-4">{row.location}</TableCell>
-      <TableCell className="px-4 py-4">
-        <StatusSelect
-          value={row.status}
-          onChange={(status) => onStatusChange(row.id, status)}
-        />
-      </TableCell>
-      <TableCell className="px-4 py-4">
-        <div className="flex items-center gap-1">
-          <IconTooltipButton
-            icon={FileText}
-            label="Resume"
-            ariaLabel="Open resume"
-          />
-          <IconTooltipButton
-            icon={Mail}
-            label="Cover letter"
-            ariaLabel="Open cover letter generation"
-          />
-        </div>
-      </TableCell>
-      <TableCell className="px-4 py-4">
+      <TableCell className="hidden px-3 py-4 font-medium xl:table-cell">
         <Link
-          className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"
+          className="inline-flex max-w-full items-center gap-1 text-primary underline-offset-4 hover:underline"
           href={row.link}
           target="_blank"
           rel="noreferrer"
         >
-          <ExternalLink className="size-3.5" /> Open
+          <span className="truncate">{row.company}</span>
+          <ExternalLink className="size-3.5 shrink-0" />
         </Link>
       </TableCell>
-      <TableCell className="px-4 py-4">
-        <div className="flex items-center gap-1">
-          <IconTooltipButton
-            icon={PencilLine}
-            label="Edit"
-            ariaLabel="Edit generation"
-          />
-          <IconTooltipButton
-            icon={Trash2}
-            label="Delete"
-            ariaLabel="Delete generation"
-            onClick={() => onDeleteRow(row.id)}
-          />
-          <IconTooltipButton
-            icon={Play}
-            label={isGenerating ? "Generating" : "Run generation"}
-            ariaLabel="Run generation"
-            iconClassName={`size-4 fill-current ${
-              isGenerating ? "animate-spin" : ""
-            }`}
-            onClick={() => onGenerateRow(row.id)}
-          />
-        </div>
+      <TableCell className="hidden truncate px-3 py-4 xl:table-cell">
+        {row.title}
+      </TableCell>
+      <TableCell className="hidden truncate px-3 py-4 xl:table-cell">
+        {row.location}
+      </TableCell>
+      <TableCell className="px-3 py-4">
+        <JobStatusSelect
+          value={row.status}
+          onValueChange={(status) => {
+            if (status) {
+              void onStatusChange(row.id, status);
+            }
+          }}
+          ariaLabel={`Update status for ${row.title}`}
+          className="h-9 w-full"
+        />
+      </TableCell>
+      <TableCell className="px-3 py-4">
+        <GenerationIndicators row={row} />
+      </TableCell>
+      <TableCell className="px-3 py-4">
+        <RowActions
+          isGenerating={isGenerating}
+          row={row}
+          onDeleteRow={onDeleteRow}
+          onEditRow={onEditRow}
+          onGenerateRow={onGenerateRow}
+        />
       </TableCell>
     </TableRow>
   );
 }
 
-function StatusSelect({
-  value,
-  onChange,
+function JobTrackerMobileCard({
+  isGenerating,
+  isSelected,
+  row,
+  onDeleteRow,
+  onEditRow,
+  onGenerateRow,
+  onStatusChange,
+  onToggleRow,
 }: {
-  value: JobStatus;
-  onChange: (status: JobStatus) => void;
+  isGenerating: boolean;
+  isSelected: boolean;
+  row: JobRow;
+  onDeleteRow: (row: JobRow) => void;
+  onEditRow: (row: JobRow) => void;
+  onGenerateRow: (rowId: string) => void;
+  onStatusChange: StatusChangeHandler;
+  onToggleRow: (rowId: string) => void;
 }) {
   return (
-    <select
-      value={value}
-      onChange={(event) => onChange(event.target.value as JobStatus)}
-      className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+    <div
+      className={`grid gap-4 rounded-lg border bg-background p-3 ${
+        isSelected ? "border-primary/40 bg-muted/40" : ""
+      }`}
     >
-      {JOB_STATUS_OPTIONS.map((status) => (
-        <option key={status} value={status}>
-          {status}
-        </option>
-      ))}
-    </select>
+      <div className="flex items-start gap-3">
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={() => onToggleRow(row.id)}
+          className="mt-1"
+        />
+        <JobSummary row={row} />
+      </div>
+
+      <div className="grid gap-3">
+        <JobStatusSelect
+          value={row.status}
+          onValueChange={(status) => {
+            if (status) {
+              void onStatusChange(row.id, status);
+            }
+          }}
+          ariaLabel={`Update status for ${row.title}`}
+          className="h-9 w-full"
+        />
+        <div className="flex items-center justify-between gap-3">
+          <GenerationIndicators row={row} />
+          <RowActions
+            isGenerating={isGenerating}
+            row={row}
+            onDeleteRow={onDeleteRow}
+            onEditRow={onEditRow}
+            onGenerateRow={onGenerateRow}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GenerationIndicators({ row }: { row: JobRow }) {
+  if (!row.hasResume && !row.hasCoverLetter) {
+    return <span className="text-sm text-muted-foreground">N/A</span>;
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      {row.hasResume && (
+        <IconTooltipButton
+          icon={FileText}
+          label="Resume"
+          ariaLabel="Open resume"
+        />
+      )}
+      {row.hasCoverLetter && (
+        <IconTooltipButton
+          icon={Mail}
+          label="Cover letter"
+          ariaLabel="Open cover letter generation"
+        />
+      )}
+    </div>
+  );
+}
+
+function JobSummary({ row }: { row: JobRow }) {
+  return (
+    <div className="min-w-0 flex-1">
+      <Link
+        className="inline-flex max-w-full items-center gap-1 font-medium text-primary underline-offset-4 hover:underline"
+        href={row.link}
+        target="_blank"
+        rel="noreferrer"
+      >
+        <span className="truncate">{row.company}</span>
+        <ExternalLink className="size-3.5 shrink-0" />
+      </Link>
+      <div className="mt-1 truncate text-sm text-foreground">{row.title}</div>
+      <div className="mt-1 truncate text-xs text-muted-foreground">
+        {row.location}
+      </div>
+    </div>
+  );
+}
+
+function RowActions({
+  isGenerating,
+  row,
+  onDeleteRow,
+  onEditRow,
+  onGenerateRow,
+}: {
+  isGenerating: boolean;
+  row: JobRow;
+  onDeleteRow: (row: JobRow) => void;
+  onEditRow: (row: JobRow) => void;
+  onGenerateRow: (rowId: string) => void;
+}) {
+  return (
+    <div className="flex items-center gap-1">
+      <IconTooltipButton
+        icon={PencilLine}
+        label="Edit"
+        ariaLabel="Edit generation"
+        onClick={() => onEditRow(row)}
+      />
+      <IconTooltipButton
+        icon={Trash2}
+        label="Delete"
+        ariaLabel="Delete generation"
+        onClick={() => onDeleteRow(row)}
+      />
+      <IconTooltipButton
+        icon={Play}
+        label={isGenerating ? "Generating" : "Run generation"}
+        ariaLabel="Run generation"
+        iconClassName={`size-4 fill-current ${
+          isGenerating ? "animate-spin" : ""
+        }`}
+        onClick={() => onGenerateRow(row.id)}
+      />
+    </div>
   );
 }

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ghost API Endpoints"
+  short_description: "Wire Ghost frontend endpoints from Swagger."
+  default_prompt: "Add or update a Ghost frontend endpoint integration using openapi/swagger.json and existing service/application patterns."
+

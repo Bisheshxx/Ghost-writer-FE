@@ -6,11 +6,28 @@ export type JobStatus =
   | "Rejected"
   | "Interview stage";
 
-export type JobRow = {
+export type JobSortOrder = "asc" | "desc";
+
+export type JobListItem = {
+  id: string;
+  company: string;
+  title: string;
+  location: string;
+  status: JobStatus;
+  link: string;
+  hasCoverLetter: boolean;
+  hasResume: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type Job = {
   id: string;
   company: string;
   title: string;
   description: string;
+  coverLetter?: string;
+  resume?: string;
   location: string;
   status: JobStatus;
   link: string;
@@ -18,13 +35,20 @@ export type JobRow = {
   updatedAt?: string;
 };
 
-export type Job = Required<JobRow>;
+export type JobRow = JobListItem;
 
 export type JobsListParams = {
   page?: number;
   limit?: number;
   search?: string;
   status?: JobStatus | "";
+  sortOrder?: JobSortOrder;
+};
+
+export type JobsByStatusParams = {
+  page?: number;
+  limit?: number;
+  status: JobStatus;
 };
 
 export type CreateJobPayload = {

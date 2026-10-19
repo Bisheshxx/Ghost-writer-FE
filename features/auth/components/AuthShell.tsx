@@ -14,8 +14,10 @@ export default function AuthShell({
   return (
     <main className="min-h-screen w-full bg-background">
       <section className="mx-auto grid min-h-screen w-full max-w-6xl grid-cols-1 lg:grid-cols-[1fr_440px]">
-        <div className="hidden flex-col justify-between border-r bg-muted/30 px-10 py-8 lg:flex">
-          <div className="text-sm font-semibold tracking-wide">Ghost Writer</div>
+        <div className="hidden flex-col justify-between border-r px-10 py-8 lg:flex">
+          <div className="text-sm font-semibold tracking-wide">
+            Ghost Writer
+          </div>
           <div className="max-w-xl space-y-5">
             <p className="text-4xl font-semibold leading-tight">
               Build focused application material from your experience.

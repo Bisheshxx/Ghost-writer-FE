@@ -1,6 +1,11 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import type { ApiResponse, PaginationMeta } from "@/shared/types/global.types";
 
@@ -9,6 +14,8 @@ import type {
   CreateJobPayload,
   GeneratedPayload,
   Job,
+  JobsByStatusParams,
+  JobListItem,
   JobsListParams,
   JobStatus,
   UpdateJobPayload,
@@ -19,9 +26,19 @@ export const JOB_TRACKER_QUERY_KEY = "job-tracker";
 const jobsQueryKey = (params: JobsListParams) =>
   [JOB_TRACKER_QUERY_KEY, "jobs", params] as const;
 
+const jobsByStatusQueryKey = (params: Omit<JobsByStatusParams, "page">) =>
+  [JOB_TRACKER_QUERY_KEY, "jobs", "status", params] as const;
+
+const jobQueryKey = (id?: string) => [JOB_TRACKER_QUERY_KEY, "job", id] as const;
+
 type MutationOptions<TData, TVariables> = {
   onSuccess?: (data: ApiResponse<TData>, variables: TVariables) => void;
   onError?: (error: Error, variables: TVariables) => void;
+};
+
+type StatusMutationVariables = {
+  id: string;
+  status: JobStatus;
 };
 
 export function useJobs(params: JobsListParams) {
@@ -35,6 +52,50 @@ export function useJobs(params: JobsListParams) {
     ...response,
     data: response.data?.data ?? [],
     meta: response.data?.meta as PaginationMeta | undefined,
+  };
+}
+
+export function useJobsByStatusInfinite({
+  limit = 10,
+  status,
+}: Omit<JobsByStatusParams, "page">) {
+  const response = useInfiniteQuery({
+    queryKey: jobsByStatusQueryKey({ limit, status }),
+    queryFn: ({ pageParam }) =>
+      JobTrackerService.getJobsByStatus({ limit, page: pageParam, status }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const meta = lastPage.meta as PaginationMeta | undefined;
+
+      if (!meta?.hasNextPage) return undefined;
+
+      return meta.page + 1;
+    },
+    retry: 1,
+  });
+
+  const pages = response.data?.pages ?? [];
+  const rows = pages.flatMap((page) => page.data ?? []) as JobListItem[];
+  const meta = pages.at(-1)?.meta as PaginationMeta | undefined;
+
+  return {
+    ...response,
+    rows,
+    meta,
+  };
+}
+
+export function useJob(id?: string, enabled = true) {
+  const response = useQuery({
+    queryKey: jobQueryKey(id),
+    queryFn: () => JobTrackerService.getJob(id as string),
+    enabled: enabled && Boolean(id),
+    retry: 1,
+  });
+
+  return {
+    ...response,
+    data: response.data?.data,
   };
 }
 
@@ -70,18 +131,24 @@ export function useUpdateJob(
 }
 
 export function useUpdateJobStatus(
-  options?: MutationOptions<Job, { id: string; status: JobStatus }>,
+  options?: MutationOptions<Job, StatusMutationVariables>,
 ) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: JobStatus }) =>
+    mutationFn: ({ id, status }: StatusMutationVariables) =>
       JobTrackerService.updateJobStatus(id, status),
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: [JOB_TRACKER_QUERY_KEY] });
       options?.onSuccess?.(data, variables);
     },
-    onError: options?.onError,
+    onError: (error, variables) => {
+      options?.onError?.(error, variables);
+    },
+    onSettled: () => {
+      return queryClient.invalidateQueries({
+        queryKey: [JOB_TRACKER_QUERY_KEY],
+      });
+    },
   });
 }
 

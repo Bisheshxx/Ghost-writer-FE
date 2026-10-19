@@ -3,8 +3,9 @@ import { Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider, Show } from "@clerk/nextjs";
 import TanStackQueryProvider from "@/shared/providers/tan-stack-query.provider";
+import ThemeProvider from "@/shared/providers/theme.provider";
 import AppShell from "@/components/app-shell";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 
 const robotoMono = Roboto_Mono({
   variable: "--font-roboto-mono",
@@ -23,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${robotoMono.variable} antialiased`}>
         <ClerkProvider
           signInFallbackRedirectUrl="/"
@@ -31,16 +32,18 @@ export default function RootLayout({
           signUpFallbackRedirectUrl="/"
           signUpUrl="/sign-up"
         >
-          <TanStackQueryProvider>
-            <Show when="signed-in">
-              <AppShell>{children}</AppShell>
-            </Show>
-            <Show when="signed-out">
-              <main className="min-h-screen w-full">{children}</main>
-            </Show>
-          </TanStackQueryProvider>
+          <ThemeProvider>
+            <TanStackQueryProvider>
+              <Show when="signed-in">
+                <AppShell>{children}</AppShell>
+              </Show>
+              <Show when="signed-out">
+                <main className="min-h-screen w-full">{children}</main>
+              </Show>
+            </TanStackQueryProvider>
+            <Toaster position="bottom-right" />
+          </ThemeProvider>
         </ClerkProvider>
-        <Toaster position="bottom-right" />
       </body>
     </html>
   );

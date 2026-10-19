@@ -1,6 +1,6 @@
 ---
 name: ghost-feature-api
-description: Build or update API-backed feature modules in the Ghost Writer frontend. Use when adding a new feature/domain, extending an existing feature service, wiring React Query hooks, creating Zod/RHF forms, or implementing frontend CRUD flows that must follow openapi/swagger.json and the existing feature-domain structure.
+description: Build or update API-backed feature modules in the Ghost Writer frontend. Use when adding a new feature/domain, extending an existing feature service, wiring shared API hooks, creating Zod/RHF forms, or implementing frontend CRUD flows that must follow openapi/swagger.json and the existing feature-domain structure.
 ---
 
 # Ghost Feature API
@@ -14,7 +14,7 @@ description: Build or update API-backed feature modules in the Ghost Writer fron
    - `schema/`: Zod validation schema.
    - `types/`: entity, form, request, and response types.
    - `service/`: backend methods using `request` from `@/lib/axios/request`.
-   - `application/`: TanStack Query hooks and invalidation.
+   - `application/`: feature hooks using `useApiQuery`/`useApiMutation` from `shared/hooks`, or direct TanStack Query only for richer flows such as job tracker pagination.
    - `store/`: feature-local dialog or selection state only when needed.
    - `component/` and `form/`: UI and React Hook Form components.
    - `index.tsx`: page-level feature export.
@@ -30,6 +30,8 @@ description: Build or update API-backed feature modules in the Ghost Writer fron
 - For `204` responses, type the service response as `request<null>()`.
 - If Swagger uses wrapper bodies, preserve them. Example: creating experience sends `{ experiences: [experience] }`.
 - If the backend Swagger changed, run `pnpm sync:api` before implementing.
+
+For endpoint-only work, also use the local `ghost-api-endpoints` skill.
 
 ## References
 

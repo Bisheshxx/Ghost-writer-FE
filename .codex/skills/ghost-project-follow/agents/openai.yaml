@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ghost Project Follow"
+  short_description: "Follow Ghost frontend repo rules before code changes."
+  default_prompt: "Make a change in the Ghost frontend while following AGENTS.md, agent.md, and the existing project patterns."
+
